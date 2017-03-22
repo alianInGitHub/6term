@@ -4,7 +4,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Map;
 
 /**
  * Created by Анастасия on 03.03.2017.
@@ -240,10 +239,8 @@ public class DrawArea extends JComponent {
     private void createEdge(Point vertex, int vertexId) {
         if(fromVertex != null) {
             graphics2D.setPaint(Color.black);
-            drawLine(vertex, fromVertex);
-            drawPoint((int)fromVertex.getX(), (int)fromVertex.getY(), PAINT_RADIUS);
-            edges.add(new Edge(fromVertex, fromVertexId, vertex, vertexId));
-            graphics2D.drawString(new Integer(edges.size() - 1).toString(), (fromVertex.x + vertex.x) / 2, (fromVertex.y + vertex.y) / 2);
+            createAndDrawEdgeTo(vertex, vertexId);
+
             fromVertex = null;
             graphics2D.setPaint(Color.red);
             if(currentLocationMethod == METHOD.CHAINS) {
@@ -254,6 +251,14 @@ public class DrawArea extends JComponent {
             fromVertexId = vertexId;
             drawPoint((int)fromVertex.getX(), (int)fromVertex.getY(), PAINT_RADIUS);
         }
+    }
+
+    private void createAndDrawEdgeTo(Point vertex, int vertexId) {
+        edges.add(new Edge(fromVertex, fromVertexId, vertex, vertexId));
+
+        drawLine(vertex, fromVertex);
+        drawPoint((int)fromVertex.getX(), (int)fromVertex.getY(), PAINT_RADIUS);
+        graphics2D.drawString(new Integer(edges.size() - 1).toString(), (fromVertex.x + vertex.x) / 2, (fromVertex.y + vertex.y) / 2);
     }
 
     private void drawPoint(int x, int y, int radius) {
@@ -492,10 +497,10 @@ public class DrawArea extends JComponent {
         repaint();
 
         upIteration(vertexListOfEdgesIn, vertexListOfEdgesOut);
-        downIeration(vertexListOfEdgesIn, vertexListOfEdgesOut);
+        downIteration(vertexListOfEdgesIn, vertexListOfEdgesOut);
 
         upIteration(vertexListOfEdgesIn, vertexListOfEdgesOut);
-        downIeration(vertexListOfEdgesIn, vertexListOfEdgesOut);
+        downIteration(vertexListOfEdgesIn, vertexListOfEdgesOut);
 
 
         for (int i = 0; i < edges.size(); i++) {
@@ -514,16 +519,13 @@ public class DrawArea extends JComponent {
             if ( theLeftestEdgeFromCurrentVertex == -1)
                 continue;
 
-            //System.out.print(i + " : " + theLeftestEdgeFromCurrentVertex + " ");
             if (wSumIn > wSumOut) {
                 edges.get(theLeftestEdgeFromCurrentVertex).w = wSumIn - wSumOut + 1;
             }
-            //System.out.println(edges.get(theLeftestEdgeFromCurrentVertex).w);
         }
-        //System.out.println();
     }
 
-    private void downIeration(ArrayList<LinkedList<Integer>> vertexListOfEdgesIn,  ArrayList<LinkedList<Integer>> vertexListOfEdgesOut) {
+    private void downIteration(ArrayList<LinkedList<Integer>> vertexListOfEdgesIn, ArrayList<LinkedList<Integer>> vertexListOfEdgesOut) {
         //System.out.println("DOWN");
         for (int i = sortedVertexes.size() - 1; i >= 0; i--) {
             int wSumOut = sumWeights(vertexListOfEdgesOut.get(i));
@@ -534,13 +536,10 @@ public class DrawArea extends JComponent {
             if ( theLeftestEdgeFromCurrentVertex == -1)
                 continue;
 
-            //System.out.print(i + " : " + theLeftestEdgeFromCurrentVertex + " ");
             if (wSumOut > wSumIn) {
                 edges.get(theLeftestEdgeFromCurrentVertex).w += wSumOut - wSumIn;
             }
-            //System.out.println(edges.get(theLeftestEdgeFromCurrentVertex).w);
         }
-        //System.out.println();
     }
 
         private int sumWeights(LinkedList<Integer> w) {
