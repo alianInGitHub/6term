@@ -86,6 +86,7 @@ public class DrawArea extends JComponent {
     private int fromVertexId;
     private Point currentPoint = null;
     private Strip[] strips;
+    LinkedList<LinkedList<Integer>> chains;
 
     //.............................................PUBLIC..METHODS....................................................//
 
@@ -502,11 +503,29 @@ public class DrawArea extends JComponent {
         upIteration(vertexListOfEdgesIn, vertexListOfEdgesOut);
         downIteration(vertexListOfEdgesIn, vertexListOfEdgesOut);
 
+        fillChainsList(vertexListOfEdgesOut);
 
         for (int i = 0; i < edges.size(); i++) {
             System.out.println(i + " : " + edges.get(i).w);
         }
         System.out.println();
+    }
+
+    private void fillChainsList(ArrayList<LinkedList<Integer>>vertexListOfEdgesOut) {
+        chains = new LinkedList<>();
+        //int count = 0;
+        for (int i = 0; i < vertexListOfEdgesOut.size(); i++) {
+            if (chains.isEmpty()) {
+                for (int j = 0; j < vertexListOfEdgesOut.get(i).size(); j++) {
+                    chains.add(new LinkedList<>());
+                    chains.get(j).add(new Integer(i));
+                }
+            } else if (vertexListOfEdgesOut.get(i).size() > 1) {
+
+            }
+
+
+        }
     }
 
     private void upIteration( ArrayList<LinkedList<Integer>> vertexListOfEdgesIn,  ArrayList<LinkedList<Integer>> vertexListOfEdgesOut) {
@@ -571,7 +590,13 @@ public class DrawArea extends JComponent {
     }
 
     private void locateInChains() {
+        int firstChainId;
+        int secondChainId;
 
+        int firstCommonVertexId;
+        int seconfCommonVertexId;
+
+        //for (int i = 0; i < )
     }
 
     private void drawArrows() {
