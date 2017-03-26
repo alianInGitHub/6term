@@ -18,7 +18,6 @@ public class FourThreads {
 
         @Override
         public void run() {
-            //System.out.println();
             for (int i = 0; i < 4; i++) {
                 int countAEqualLines = 0;
                 int countBEqualLines = 0;
@@ -126,7 +125,7 @@ public class FourThreads {
         threads = new StringProcessor[4];
         barrier = new CyclicBarrier(4, new Controller());
         toStop = false;
-        String[] strings = loadStringsFromFile("data.txt");
+        String[] strings = loadStringsFromFile("/home/anastasia/Documents/GitHub/6term/Multithreading/Lab5/src/FourThreads/data.txt");
 
         for(int i = 0; i < 4; i++) {
             threads[i] = new StringProcessor(strings[i]);
@@ -184,7 +183,7 @@ public class FourThreads {
 
     public static void main(String[] args) {
         //Uncomment to set new data
-        //fillFileWithRandomLetters("data.txt");
+        fillFileWithRandomLetters("/home/anastasia/Documents/GitHub/6term/Multithreading/Lab5/src/FourThreads/data.txt");
         
         FourThreads task = new FourThreads();
         task.run();
