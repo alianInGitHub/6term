@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Random;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 
 /**
  * Created by anastasia on 3/22/17.
@@ -13,43 +15,65 @@ public class FreshMeats {
         STRAIGHT, LEFT, RIGHT
     }
 
-    //TODO: cyclic barrier of n threads(freshmen) and 1 thread, which show info
+    private Position[] freshMeats;
+    private Thread[] threads;
+    private int amount;
+    private CyclicBarrier barrier;
 
-    private class Visualizer extends Thread {
+    private Boolean[] modificationControllers;
+    private Boolean arrayWasModified;
+
+    private class Visualizer implements Runnable {
         @Override
         public void run() {
-            while (true) {
-                synchronized (freshMeats) {
-                    for (int i = 0; i < amount; i++) {
-                        System.out.print(freshMeats[i].ordinal());
-                    }
-                    System.out.println('\n');
+            synchronized (freshMeats) {
+                for (int i = 0; i < amount; i++) {
+                    System.out.print(freshMeats[i].ordinal());
                 }
+                System.out.println('\n');
+            }
 
-                try {
-                    sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            int count = 0;
+            for (; count < modificationControllers.length; count++) {
+                if(modificationControllers[count]) {
+                    arrayWasModified = true;
+                    break;
                 }
             }
+            int countChangePosition = 0;
+            if(count == modificationControllers.length) {
+                for (int i = 0; i < amount - 1; i++) {
+                    if(freshMeats[i] != freshMeats[i + 1])
+                        countChangePosition++;
+                }
+                if(countChangePosition == 1)
+                    arrayWasModified = false;
+            }
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
     private class Teacher extends Thread{
         private int fromPosition, toPosition;
+        private int personalNumber;
 
-        public Teacher(int from, int to) {
+        public Teacher(int from, int to, int personalNumber) {
             fromPosition = from;
             toPosition = to;
+            this.personalNumber = personalNumber;
         }
 
         @Override
         public void run() {
-            boolean areRegular = false;
-            while (!areRegular) {
+            while (arrayWasModified) {
                 Position[] newFreshMeats = copyFreshMeats();
                 for (int i = fromPosition; i < toPosition; i++) {
-                    //TODO : regular algorithm
                     switch (freshMeats[i]) {
                         case LEFT:
                             if (i > fromPosition) {
@@ -85,21 +109,28 @@ public class FreshMeats {
                     }
                 }
 
-
-                boolean soldiersAreReguled = true;
+                boolean partIsStable = false;
                 for(int i = fromPosition; i < toPosition; i++) {
                     if(freshMeats[i] != newFreshMeats[i - fromPosition]) {
                         freshMeats[i] = newFreshMeats[i - fromPosition];
-                        soldiersAreReguled = false;
+                        partIsStable = true;
                     }
                 }
 
-                if (soldiersAreReguled) {
-                    areRegular = true;
+                if (partIsStable) {
+                    modificationControllers[personalNumber] = false;
+                }
+
+                try {
+                    barrier.await();
+                } catch (InterruptedException | BrokenBarrierException e) {
+                    e.printStackTrace();
                 }
 
             }
+
             System.out.println("Ok");
+
         }
 
         private Position[] copyFreshMeats() {
@@ -125,13 +156,10 @@ public class FreshMeats {
 
         @Override
         public String toString() {
-            return new Integer(toPosition - fromPosition).toString();
+            return Integer.toString(toPosition - fromPosition);
         }
     }
 
-    private Position[] freshMeats;
-    private Thread[] threads;
-    private int amount;
 
     public FreshMeats(int amount) {
         this.amount = amount;
@@ -148,13 +176,14 @@ public class FreshMeats {
 
     private void initializeThreads() {
         int threadsNumber = amount / 50;
+        this.barrier = new CyclicBarrier(threadsNumber, new Visualizer());
         threads = new Thread[threadsNumber];
         for (int i = 0; i < threadsNumber; i++) {
             int to = (i + 1) * 50;
             if ((i == threadsNumber - 1) && (to - i * 50 < amount - i * 50))
                 to = amount;
 
-            threads[i] = new Teacher(i * 50, to);
+            threads[i] = new Teacher(i * 50, to, i);
         }
 
     }
@@ -170,22 +199,26 @@ public class FreshMeats {
                 freshMeats[i] = Position.RIGHT;
         }
 
-        Thread show = new Visualizer();
+        arrayWasModified = true;
+        modificationControllers = new Boolean[threads.length];
+
         for (int i = 0; i < threads.length; i++) {
+            modificationControllers[i] = true;
             threads[i].start();
         }
-        show.run();
+
+        while (true) {
+            for (int i = 0; i < threads.length; i++) {
+                if(!threads[i].isAlive()) {
+                    break;
+                }
+            }
+            break;
+        }
 
         for (int i = 0; i < threads.length; i++) {
             threads[i].join();
         }
-        show.interrupt();
-
-        for (int i = 0; i < amount; i++) {
-            System.out.print(freshMeats[i].toString() + ", ");
-        }
-
-        System.out.println();
     }
 
 
@@ -200,3 +233,4 @@ public class FreshMeats {
         freshMeats.runThreads();
     }
 }
+
