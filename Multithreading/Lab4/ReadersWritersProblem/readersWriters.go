@@ -11,10 +11,11 @@ import (
 	"math/rand"
 )
 
+var path = "/home/anastasia/Documents/GoglandProjects/lab4/ReadersWritersProblem/"
+
 func main() {
 
 	quit := make(chan bool)
-	path := "/home/anastasia/Documents/GoglandProjects/lab4/ReadersWritersProblem/"
 
 	commandSNFile := openFile(path + "command_sn.txt")
 	commandSNFileReader := bufio.NewReader(commandSNFile)
@@ -25,11 +26,8 @@ func main() {
 	commandNewDataFile := openFile(path + "new_data.txt")
 	commandNewDataFileReader := bufio.NewReader(commandNewDataFile)
 
-	f, err := os.OpenFile(path + "data.txt", os.O_APPEND, 0666)
+	f, err := os.OpenFile(path + "data", os.O_SYNC | os.O_APPEND, 0666)
 	checkErr(err)
-	//f_copy := openFile(path + "data.txt")
-	reader := io.NewSectionReader(f, 0, 100 * 39)
-	//writer := bufio.NewWriter(f)
 
 
 	defer f.Close()
@@ -39,13 +37,13 @@ func main() {
 
 	var mutex = &sync.RWMutex{}
 
-	go surnameReader(reader, mutex, commandSNFileReader)
-	go surnameReader(reader, mutex, commandSNFileReader)
+	go surnameReader(f, mutex, commandSNFileReader)
+	go surnameReader(f, mutex, commandSNFileReader)
 
-	go telephoneReader(reader, mutex, commandTelFileReader)
-	go telephoneReader(reader, mutex, commandTelFileReader)
+	go telephoneReader(f, mutex, commandTelFileReader)
+	go telephoneReader(f, mutex, commandTelFileReader)
 
-	go writerOfNewData(f, mutex, commandNewDataFileReader)
+	go writer(mutex, commandNewDataFileReader)
 
 	<- quit
 }
@@ -58,13 +56,10 @@ func openFile(path string) *os.File {
 	return file
 }
 
-func surnameReader(f *io.SectionReader, mutex *sync.RWMutex, commandsFileReader *bufio.Reader)  {
+func surnameReader(f *os.File, mutex *sync.RWMutex, commandsFileReader *bufio.Reader)  {
+
 	for {
-		isFound := false
-
 		surname := read(commandsFileReader, '\n')
-
-		//erase spaces
 		if surname != ""  {
 			surname = surname[:len(surname) - 1]
 		} else {
@@ -72,31 +67,121 @@ func surnameReader(f *io.SectionReader, mutex *sync.RWMutex, commandsFileReader 
 		}
 
 		mutex.RLock()
-		f.Seek(0, 0)
-		reader := bufio.NewReader(f)
-
-		for {
-			curr := read(reader, ' ')
-			if curr == "" { break }
-
-			curr = curr[:len(curr) - 1]
-			if curr == surname {
-				str := read(reader, '\n')
-				if str == "" { break }
-				fmt.Println("[snreader] :\t", curr, str[:len(str) - 1])
-				isFound = true
-				break
-			} else {
-				read(reader, '\n')
-			}
-		}
+		info := findInfoBySurname(f, surname)
 		mutex.RUnlock()
-		if !isFound {
+
+		if info != "" {
+			fmt.Println("[snreader] : \t", info)
+		} else {
+
 			fmt.Println("[snreader] :\t Not Founnd! : ", surname)
 		}
-		time.Sleep(time.Second * time.Duration(rand.Intn(5) + 2))
+
+		time.Sleep(time.Second * time.Duration(rand.Intn(8) + 2))
 	}
 	fmt.Println("end")
+}
+
+func telephoneReader(f *os.File, mutex *sync.RWMutex, commandsFileReader *bufio.Reader)  {
+	for {
+		phone := read(commandsFileReader, '\n')
+		if phone == "" {  fmt.Println("eof 1"); break }
+
+		mutex.RLock()
+		info := findInfoByPhoneNumber(f, phone)
+		mutex.RUnlock()
+
+		if info != "" {
+			fmt.Println("[telreader] :\t", info)
+		} else {
+			fmt.Println("[telreader] :\t Not Found : ", phone)
+		}
+		time.Sleep(time.Second * time.Duration(rand.Intn(10)))
+	}
+	fmt.Println("tel end")
+}
+
+func writer(mutex *sync.RWMutex, commandsFileReader *bufio.Reader)  {
+	for  {
+		time.Sleep(time.Second *time.Duration(rand.Intn(7) + 2))
+
+		data := read(commandsFileReader, '\n')
+		if data == "" {
+			break
+		}
+
+		mutex.Lock()
+		f, err := os.OpenFile(path + "data" ,os.O_RDWR | os.O_APPEND,0666)
+		checkErr(err)
+
+		writeDataIntoFile(f, data)
+
+		f,err = os.OpenFile(path + "data",os.O_SYNC,0666)
+		checkErr(err)
+
+		mutex.Unlock()
+
+
+		fmt.Println("[writer] :\t", data)
+	}
+	fmt.Println("wr end")
+}
+
+func findInfoBySurname(f *os.File, surname string) string {
+	f.Seek(0, 0)
+	reader := bufio.NewReader(f)
+
+	for {
+		curr := read(reader, ' ')
+		if curr == "" { break }
+
+		if curr == surname {
+			str := read(reader, '\n')
+			if str == "" { break }
+			return surname + " " + str[:len(str) - 1]
+		} else {
+			read(reader, '\n')
+		}
+	}
+
+	return ""
+}
+
+func checkErr(err error)  {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+
+func findInfoByPhoneNumber(f *os.File, phoneNumber string) string {
+	f.Seek(0, 0)
+	reader := bufio.NewReader(f)
+
+	for {
+		info := ""
+		for i := 0; i < 3; i++ {
+			s := read(reader, ' ')
+			if s == "" { break }
+			info += s + " "
+		}
+
+		curr := read(reader, '\n')
+		if curr == "" { break }
+
+		if curr == phoneNumber {
+			info += curr
+			return info
+		}
+	}
+	return ""
+}
+
+
+func writeDataIntoFile(f *os.File, data string)  {
+	w:= bufio.NewWriter(f)
+	fmt.Fprintln(w, data)
+	w.Flush()
 }
 
 func read(reader *bufio.Reader, delimiter byte) string  {
@@ -110,70 +195,6 @@ func read(reader *bufio.Reader, delimiter byte) string  {
 	}
 	str = str[:len(str) - 1]
 	return str
-}
-
-func telephoneReader(f *io.SectionReader, mutex *sync.RWMutex, commandsFileReader *bufio.Reader)  {
-	for {
-		phone := read(commandsFileReader, '\n')
-		if phone == "" {  fmt.Println("eof 1"); break }
-
-		isFound := false
-
-		mutex.RLock()
-		f.Seek(0, 0)
-		reader := bufio.NewReader(f)
-
-		for {
-			info := ""
-			for i := 0; i < 3; i++ {
-				s := read(reader, ' ')
-				info += s + " "
-			}
-
-			curr := read(reader, '\n')
-
-			if curr == phone {
-				info += curr
-				fmt.Println("[telreader] :\t", info)
-				isFound = true
-				break
-			}
-		}
-		mutex.RUnlock()
-		if !isFound {
-			fmt.Println("[telreader] :\t Not Found : ", phone)
-		}
-		time.Sleep(time.Second * time.Duration(rand.Intn(5)))
-	}
-	fmt.Println("tel end")
-}
-
-func writerOfNewData(writer *os.File,  mutex *sync.RWMutex, commandsFileReader *bufio.Reader)  {
-	for  {
-		time.Sleep(time.Second *time.Duration(rand.Intn(7)))
-
-		fmt.Print("3")
-		data := read(commandsFileReader, '\n')
-		if data == "" {
-			break
-		}
-
-		fmt.Print("3")
-		mutex.Lock()
-		fmt.Print("3")
-		writer.WriteString(data)
-		fmt.Print("3")
-		mutex.Unlock()
-
-		fmt.Println("[writer] :\t", data)
-	}
-	fmt.Println("wr end")
-}
-
-func checkErr(err error)  {
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 func checkRWErr(err error) bool {
