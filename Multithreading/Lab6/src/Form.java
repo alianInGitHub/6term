@@ -15,7 +15,7 @@ public class Form {
         content.add(game, BorderLayout.CENTER);
         content.add(createControlPanel(game), BorderLayout.NORTH);
 
-        frame.setSize(GameOfLife.WIDTH - 5, GameOfLife.HEIGHT + 70);
+        frame.setSize(GameOfLife.WIDTH + 5, GameOfLife.HEIGHT + 70);
         frame.setResizable(false);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setVisible(true);
