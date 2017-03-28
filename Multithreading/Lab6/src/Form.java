@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 
 /**
  * Created by anastasia on 3/28/17.
@@ -25,21 +26,29 @@ public class Form {
         JPanel controls = new JPanel();
         controls.setLayout(new BoxLayout(controls, BoxLayout.X_AXIS));
 
+        ArrayList<Integer> threadsRange = new ArrayList<>(GameOfLife.MAX_THREADS_AMOUNT);
+        for (int i = 0; i < GameOfLife.MAX_THREADS_AMOUNT; i++) {
+            threadsRange.add(i + 1);
+        }
+
         JButton startButton = new JButton("Start");
         JButton pauseButton = new JButton("Pause");
         JButton stopButton = new JButton("Stop");
+        JSpinner spinner = new JSpinner(new SpinnerListModel(threadsRange.toArray()));
+        spinner.addChangeListener(e -> gameOfLife.setAmountOfThreads(spinner.getComponentCount()));
 
-        ActionListener listener = e -> {
+
+        ActionListener buttonListener = e -> {
             if (e.getSource() == startButton) {
-                if(startButton.getName() == "Start") {
-                    gameOfLife.run();
-                } else if(startButton.getName() == "Continue") {
+                if(startButton.getText().equals("Start")) {
+                    new Thread(gameOfLife).start();
+                } else if(startButton.getText().equals("Continue")) {
                     gameOfLife.notify();
                 }
             }
             if (e.getSource() == pauseButton) {
                 gameOfLife.pause();
-                startButton.setName("Continue");
+                startButton.setText("Continue");
             }
 
             if(e.getSource() == stopButton) {
@@ -48,9 +57,9 @@ public class Form {
             }
         };
 
-        startButton.addActionListener(listener);
-        pauseButton.addActionListener(listener);
-        stopButton.addActionListener(listener);
+        startButton.addActionListener(buttonListener);
+        pauseButton.addActionListener(buttonListener);
+        stopButton.addActionListener(buttonListener);
 
         startButton.setBackground(Color.GREEN);
         pauseButton.setBackground(Color.ORANGE);
@@ -59,6 +68,8 @@ public class Form {
         controls.add(startButton);
         controls.add(pauseButton);
         controls.add(stopButton);
+        controls.add(spinner);
+        controls.add(new JPanel());
 
         return controls;
     }

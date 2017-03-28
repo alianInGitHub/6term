@@ -7,16 +7,19 @@ import java.util.ArrayList;
 /**
  * Created by anastasia on 3/28/17.
  */
-public class GameOfLife extends JComponent implements Runnable {
-    private ArrayList<ArrayList<Boolean>> grid;
-    private ArrayList<Point> playgroundCells;
+public class GameOfLife extends JComponent implements Runnable{
+    private boolean[][] grid;
+    private int countAliveCellsInGame;
+    private ArrayList<ArrayList<Point>> aliveCellsLists;
     private Graphics2D graphics2D;
     private Image image;
 
     private static final Color backgroundColor = Color.DARK_GRAY;
     private static final int CELL_SIZE = 12;
-    public static final int HEIGHT = 720;
-    public static final int WIDTH = 960;
+    static final int HEIGHT = 720;
+    static final int WIDTH = 960;
+    static final int MAX_THREADS_AMOUNT = 10;
+
 
     public GameOfLife() {
         setSize(WIDTH, HEIGHT);
@@ -35,21 +38,20 @@ public class GameOfLife extends JComponent implements Runnable {
         return false;
     }
 
-    private void drawGreenCell(int i, int j) {
-        graphics2D.setPaint(Color.GREEN);
-        graphics2D.fillRect(i + 1, j + 1, CELL_SIZE - 1, CELL_SIZE - 1 );
-        repaint();
-    }
-
     public void selectCell(Point locationOnCanvas) {
-        for (int i = 0; i < WIDTH; i += CELL_SIZE) {
-            for (int j = 0; j < HEIGHT; j += CELL_SIZE) {
-                if ( isBetween(i, i + CELL_SIZE, locationOnCanvas.x) && isBetween(j, j + CELL_SIZE, locationOnCanvas.y)) {
-                    playgroundCells.add(new Point(i, j));
-                    drawGreenCell(i, j);
+        for (int i = 0; i < WIDTH / CELL_SIZE; i ++) {
+            for (int j = 0; j < HEIGHT / CELL_SIZE; j ++) {
+                if ( isBetween(i * CELL_SIZE, (i + 1) * CELL_SIZE, locationOnCanvas.x) &&
+                        isBetween(j * CELL_SIZE, (j + 1) * CELL_SIZE, locationOnCanvas.y)) {
+                    grid[i][j] = true;
+                    int threadID = 0;
+                    aliveCellsLists.get(threadID).add(new Point(i, j));
+                    countAliveCellsInGame++;
+                    break;
                 }
             }
         }
+        repaint();
     }
 
     private void drawGrid(){
@@ -65,8 +67,8 @@ public class GameOfLife extends JComponent implements Runnable {
         graphics2D.setColor(Color.GREEN);
         for (int i = 0; i < WIDTH / CELL_SIZE; i ++) {
             for (int j = 0; j < HEIGHT / CELL_SIZE; j++) {
-                if (grid.get(i).get(j))
-                    graphics2D.fillRect(i * CELL_SIZE + 1, j * CELL_SIZE + 1, 9, 9);
+                if (aliveCellsLists.get(0).contains(new Point(i, j)))
+                    graphics2D.fillRect(i * CELL_SIZE + 1, j * CELL_SIZE + 1, CELL_SIZE - 1, CELL_SIZE - 1);
             }
         }
     }
@@ -78,27 +80,72 @@ public class GameOfLife extends JComponent implements Runnable {
             graphics2D = (Graphics2D) image.getGraphics();
             graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             clear();
-            drawGrid();
         }
+
+        drawGrid();
         g.drawImage(image, 0, 0, null);
 
     }
 
     private void initialize() {
-        grid = new ArrayList<>();
-        for (int i = 0; i < 80; i++){
-            grid.add(new ArrayList<>());
-            for (int j = 0; j < 60; j++) {
-                grid.get(i).add(false);
+        grid = new boolean[WIDTH / CELL_SIZE][HEIGHT / CELL_SIZE];
+        for (int i = 0; i < grid.length; i++){
+            for (int j = 0; j < grid[i].length; j++) {
+                grid[i][j] = false;
             }
         }
 
-        playgroundCells = new ArrayList<>();
+        aliveCellsLists = new ArrayList<>(MAX_THREADS_AMOUNT);
+        aliveCellsLists.add(new ArrayList<>(grid.length * grid[0].length));
+        countAliveCellsInGame = 0;
+    }
+
+    private void useRule(Point gridPosition, ArrayList<Point> aliveCellsList) {
+        Boolean cellValue = false;
+        if (aliveCellsList.contains(gridPosition))
+            cellValue = true;
+
+        int countAliveCells = 0;
+        for (int l = -1; l <= 1; l++) {
+            for (int k = -1; k <= 1; k++) {
+                if (!((l == k) && (k == 0)) && (aliveCellsList.contains(new Point(gridPosition.x + l, gridPosition.y + k))))
+                    countAliveCells++;
+            }
+        }
+
+        if (cellValue) {
+            if (countAliveCells < 2 || countAliveCells > 3)
+                aliveCellsList.remove(gridPosition);
+        } else {
+            if (countAliveCells == 3) {
+                aliveCellsList.add(gridPosition);
+            }
+        }
+    }
+
+    private boolean gameIsContinuing() {
+        if (countAliveCellsInGame == 0)
+            return false;
+        return true;
     }
 
     @Override
     public void run() {
-
+        int n = WIDTH / CELL_SIZE;
+        int m = HEIGHT / CELL_SIZE;
+        while (gameIsContinuing()) {
+            for (int i = 1; i < n - 1; i++) {
+                for (int j = 1; j < m - 1; j++) {
+                    useRule(new Point(i, j), aliveCellsLists.get(0));
+                }
+            }
+            repaint();
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void clear() {
@@ -117,5 +164,13 @@ public class GameOfLife extends JComponent implements Runnable {
 
     public void stop() {
         // interrupt threads
+    }
+
+    public void setAmountOfThreads(int amountOfThreads) {
+        aliveCellsLists = new ArrayList<>(MAX_THREADS_AMOUNT);
+        for (int i = 0; i < amountOfThreads; i++) {
+            aliveCellsLists.add(new ArrayList<>());
+        }
+        System.out.println(amountOfThreads);
     }
 }
