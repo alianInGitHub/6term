@@ -14,8 +14,8 @@ func main() {
 	go getFrom(storage, 20, channel)
 	go putIntoCar(channel)
 
-	var intput string
-	fmt.Scan(&intput)
+	var input string
+	fmt.Scan(&input)
 }
 
 func generate(storage chan int)  {
