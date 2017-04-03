@@ -45,23 +45,22 @@ public class DrawArea extends JComponent {
     @Override
     protected void paintComponent(Graphics g) {
         if(image == null) {
-            image = createImage(getSize().width, getSize().height);
-            graphics2D = (Graphics2D) image.getGraphics();
-            graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            clear();
             initialize();
         }
         g.drawImage(image, 0, 0, null);
     }
 
     private void initialize() {
+        image = createImage(getSize().width, getSize().height);
+        graphics2D = (Graphics2D) image.getGraphics();
+        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        clear();
+
         drawingMode = Mode.DRAWING_POINTS;
         fixedRectanglePoint = null;
         currentMousePosition = null;
         points = new ArrayList<>();
-        //tree = new TwoDTree(null, true);
         drawingNewRectangle = true;
-
         graphics2D.setPaint(Color.black);
     }
 
@@ -103,7 +102,7 @@ public class DrawArea extends JComponent {
                         graphics2D.setPaint(Color.red);
                         for(int i = 0; i < selectedPoints.size(); i++) {
                             graphics2D.fillOval(points.get(selectedPoints.get(i)).x, points.get(selectedPoints.get(i)).y, PAINT_RADIUS, PAINT_RADIUS);
-                            graphics2D.drawString(new Integer(selectedPoints.get(i)).toString(), points.get(selectedPoints.get(i)).x, points.get(selectedPoints.get(i)).y);
+                            graphics2D.drawString(Integer.toString(selectedPoints.get(i)), points.get(selectedPoints.get(i)).x, points.get(selectedPoints.get(i)).y);
                         }
                         repaint();
                         drawingNewRectangle = true;
@@ -253,8 +252,6 @@ public class DrawArea extends JComponent {
             }
 
         }
-        //res.left = new TwoDTree(tree, !tree.isVerticalSplitting());
-        //tree.right = new TwoDTree(tree, !tree.isVerticalSplitting());
         res.left = build2DTree(leftPoints, res);
         res.right = build2DTree(rightPoints, res);
 
@@ -268,33 +265,44 @@ public class DrawArea extends JComponent {
             return;
 
         if(tree.isVerticalSplitting()) {
-            if(isInRange(points.get(tree.getValue()).getX(), center.getX() - w, center.getX() + w)) {
-                if(isInRange(points.get(tree.getValue()).getY(), center.getY() - h, center.getY() + h)) {
-                    selectedPoints.add(tree.getValue());
-                }
-                searchPointsInArea(tree.left, center, w, h);
-                searchPointsInArea(tree.right, center, w, h);
-            } else {
-                if(center.getX() - w < points.get(tree.getValue()).getX()) {
-                    searchPointsInArea(tree.left, center, w, h);
-                } else {
-                    searchPointsInArea(tree.right, center, w, h);
-                }
-            }
+            splitVerticallyAndSearch(tree, center, w, h);
         } else {
-            //horizontal splitting
-            if(isInRange(points.get(tree.getValue()).getY(), center.getY() - h, center.getY() + h)) {
-                if(isInRange(points.get(tree.getValue()).getX(), center.getX() - w, center.getX() + h)) {
-                    selectedPoints.add(tree.getValue());
-                }
+            splitHorizontallyAndSearch(tree, center, w, h);
+        }
+    }
+
+    private void splitVerticallyAndSearch(TwoDTree tree, Point center, int w, int h) {
+        // needed to shift the point coordinates from top right angular to center
+        float delta = PAINT_RADIUS / 2;
+        if( isInRange(points.get(tree.getValue()).getX() + delta, center.getX() - w, center.getX() + w)) {
+            if(isInRange(points.get(tree.getValue()).getY() + delta, center.getY() - h, center.getY() + h)) {
+                selectedPoints.add(tree.getValue());
+            }
+            searchPointsInArea(tree.left, center, w, h);
+            searchPointsInArea(tree.right, center, w, h);
+        } else {
+            if(center.getX() - w < points.get(tree.getValue()).getX() + delta) {
                 searchPointsInArea(tree.left, center, w, h);
-                searchPointsInArea(tree.right, center, w, h);
             } else {
-                if(center.getY() - h < points.get(tree.getValue()).getY()) {
-                    searchPointsInArea(tree.left, center, w, h);
-                } else {
-                    searchPointsInArea(tree.right, center, w, h);
-                }
+                searchPointsInArea(tree.right, center, w, h);
+            }
+        }
+    }
+
+    private void splitHorizontallyAndSearch(TwoDTree tree, Point center, int w, int h) {
+        // needed to shift the point coordinates from top right angular to center
+        float delta = PAINT_RADIUS / 2;
+        if(isInRange(points.get(tree.getValue()).getY() + delta, center.getY() - h, center.getY() + h)) {
+            if(isInRange(points.get(tree.getValue()).getX() + delta, center.getX() - w, center.getX() + w)) {
+                selectedPoints.add(tree.getValue());
+            }
+            searchPointsInArea(tree.left, center, w, h);
+            searchPointsInArea(tree.right, center, w, h);
+        } else {
+            if(center.getY() - h < points.get(tree.getValue()).getY() + delta) {
+                searchPointsInArea(tree.left, center, w, h);
+            } else {
+                searchPointsInArea(tree.right, center, w, h);
             }
         }
     }
