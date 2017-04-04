@@ -32,41 +32,32 @@ public class Form {
         }
 
         JButton startButton = new JButton("Start");
-        JButton pauseButton = new JButton("Pause");
         JButton stopButton = new JButton("Stop");
         JSpinner spinner = new JSpinner(new SpinnerListModel(threadsRange.toArray()));
-        spinner.addChangeListener(e -> gameOfLife.setAmountOfThreads(spinner.getComponentCount()));
+        spinner.addChangeListener(e -> gameOfLife.setAmountOfThreads((Integer) spinner.getValue()));
 
 
         ActionListener buttonListener = e -> {
             if (e.getSource() == startButton) {
                 if(startButton.getText().equals("Start")) {
-                    new Thread(gameOfLife).start();
+                    gameOfLife.run();
                 } else if(startButton.getText().equals("Continue")) {
-                    gameOfLife.notify();
+                    //gameOfLife.notify();
                 }
-            }
-            if (e.getSource() == pauseButton) {
-                gameOfLife.pause();
-                startButton.setText("Continue");
             }
 
             if(e.getSource() == stopButton) {
-                gameOfLife.notify();
                 gameOfLife.stop();
             }
         };
 
         startButton.addActionListener(buttonListener);
-        pauseButton.addActionListener(buttonListener);
         stopButton.addActionListener(buttonListener);
 
         startButton.setBackground(Color.GREEN);
-        pauseButton.setBackground(Color.ORANGE);
         stopButton.setBackground(Color.RED);
 
         controls.add(startButton);
-        controls.add(pauseButton);
         controls.add(stopButton);
         controls.add(spinner);
         controls.add(new JPanel());
