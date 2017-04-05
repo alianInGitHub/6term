@@ -39,7 +39,7 @@ public class DrawArea extends JComponent {
         }
 
         public Point toVector() {
-            if(to.y > from.y) {
+            if(to.y < from.y) {
                 return new Point(to.x - from.x, to.y - from.y);
             }
             return new Point(from.x - to.x, from.y - to.y);
@@ -86,6 +86,7 @@ public class DrawArea extends JComponent {
     private int fromVertexId;
     private Point currentPoint = null;
     private Strip[] strips;
+    private ArrayList<LinkedList<Integer>> chains;
 
     //.............................................PUBLIC..METHODS....................................................//
 
@@ -243,9 +244,6 @@ public class DrawArea extends JComponent {
 
             fromVertex = null;
             graphics2D.setPaint(Color.red);
-            if(currentLocationMethod == METHOD.CHAINS) {
-                drawArrow(edges.getLast());
-            }
         } else {
             fromVertex = vertex;
             fromVertexId = vertexId;
@@ -367,7 +365,6 @@ public class DrawArea extends JComponent {
                 result.add(i);
             }
         }
-
         return sortFromLeftToRight(result, value);
     }
 
@@ -465,6 +462,64 @@ public class DrawArea extends JComponent {
     }
 
     private void createChains() {
+        ArrayList<LinkedList<Integer>> listOfEdgesOut = findEdgeWeights();
+
+        int n = sumOutWeights(listOfEdgesOut.get(listOfEdgesOut.size() - 1));
+        chains = new ArrayList<>(listOfEdgesOut.size());
+        for (int j = 0; j < listOfEdgesOut.get(listOfEdgesOut.size() - 1).size(); j++) {
+            createNewChain(0, j);
+        }
+
+        createChainsRecursive(listOfEdgesOut, sortedVertexes.size() - 1, 0);
+
+        for (LinkedList<Integer> array : chains) {
+            System.out.println(array);
+        }
+    }
+
+    private int createChainsRecursive(ArrayList<LinkedList<Integer>> listOfEdgesOut, int currentNode, int chainId) {
+        // 1. sort edges from right to left
+        // 2. for each vertex run createChainsRecursive
+        // 3. return current chainId
+
+        ArrayList<Integer> currentList = sortFromLeftToRight(new ArrayList<Integer>(listOfEdgesOut.get(currentNode)), sortedVertexes.get(currentNode).y - 1);
+        for (int i = 0; i < currentList.size(); i++) {
+            if (i > 0) {
+                chainId++;
+            }
+            chains.get(chainId).add(currentList.get(i));
+            int nextNode;
+            if (edges.get(currentList.get(i)).fromId == currentNode)
+                nextNode = edges.get(currentList.get(i)).toId;
+            else
+                nextNode = edges.get(currentList.get(i)).fromId;
+
+            if (listOfEdgesOut.get(nextNode).size() > 1) {
+                for (int j = 1; j < listOfEdgesOut.get(nextNode).size(); j++) {
+                    createNewChain(chainId, j);
+                }
+            }
+            chainId = createChainsRecursive(listOfEdgesOut, nextNode, chainId);
+        }
+        return chainId;
+    }
+
+    private void createNewChain(int chainId, int shift) {
+        chains.add(chainId + shift, new LinkedList<>());
+        for (Integer e : chains.get(chainId))
+            if (!chains.get(chainId + shift).contains(e))
+                chains.get(chainId + shift).add(e);
+    }
+
+    private int sumOutWeights(LinkedList<Integer> edgeList) {
+        int sum = 0;
+        for (Integer i:edgeList) {
+            sum += edges.get(i).w;
+        }
+        return sum;
+    }
+
+    private ArrayList<LinkedList<Integer>> findEdgeWeights() {
         ArrayList<LinkedList<Integer>> vertexListOfEdgesIn = new ArrayList<>(sortedVertexes.size());
         ArrayList<LinkedList<Integer>> vertexListOfEdgesOut = new ArrayList<>(sortedVertexes.size());
 
@@ -502,11 +557,7 @@ public class DrawArea extends JComponent {
         upIteration(vertexListOfEdgesIn, vertexListOfEdgesOut);
         downIteration(vertexListOfEdgesIn, vertexListOfEdgesOut);
 
-
-        for (int i = 0; i < edges.size(); i++) {
-            System.out.println(i + " : " + edges.get(i).w);
-        }
-        System.out.println();
+        return vertexListOfEdgesOut;
     }
 
     private void upIteration( ArrayList<LinkedList<Integer>> vertexListOfEdgesIn,  ArrayList<LinkedList<Integer>> vertexListOfEdgesOut) {
@@ -571,38 +622,22 @@ public class DrawArea extends JComponent {
     }
 
     private void locateInChains() {
-
-    }
-
-    private void drawArrows() {
-        graphics2D.setPaint(Color.black);
-        for(int i = 0; i < edges.size(); i++) {
-            drawArrow(edges.get(i));
+        for (int i = 0; i < chains.size(); i++) {
+            for (Integer e : chains.get(i)) {
+                if (isBetween(edges.get(e).from.y, edges.get(e).to.y, currentPoint.y)) {
+                    Point baseVertex = edges.get(e).lowerVertex();
+                    if(!isOnTheRightSide(new Point(currentPoint.x - baseVertex.x, currentPoint.y - baseVertex.y), edges.get(e).toVector())) {
+                        //if (!isOnTheRightSide(currentPoint, edges.get(e).toVector())) {
+                        if (i == 0) {
+                            System.out.println("On the left side out of graph");
+                        } else {
+                            System.out.println("Between chains " + (i - 1) + " and " + i);
+                        }
+                        return;
+                    }
+                }
+            }
         }
-    }
-
-    private void drawArrow(Edge edge) {
-        float k = (float) (edge.toVector().getX() / edge.toVector().getY());
-        int sign = 1;
-        if(edge.to.y > edge.from.y) {
-            sign = -1;
-        }
-        float y = (float) (sign * PAINT_RADIUS / Math.sqrt(k * k + 1));
-        Point C = new Point((int) (edge.to.x + (y * k)), (int) (y + edge.to.y ));
-        graphics2D.setPaint(Color.red);
-
-        Point CB = new Edge(C, edge.to).toVector();
-        k = (float) (CB.getY() / CB.getX());
-        float k1 = (float) (2 * PAINT_RADIUS * PAINT_RADIUS / Math.sqrt(3) / CB.getX());
-
-        y = (float) (k1 * (k + 1 / Math.sqrt(3)));
-        float y1 = (float) (k1 * (k - 1 / Math.sqrt(3)));
-
-        int[] xpoints = {edge.to.x, (int) (edge.to.x - y * k + k1), (int) (edge.to.x - y1 * k + k1) };
-        int[] ypoints = {edge.to.y, (int) (C.y + y),(int) (C.y + y1)};
-
-        drawPoint(xpoints[1],ypoints[1], PAINT_RADIUS);
-        drawPoint(xpoints[2], ypoints[2], PAINT_RADIUS);
-        repaint();
+        System.out.println("On the right side out of graph");
     }
 }

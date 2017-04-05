@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="91e81037-816d-478d-b82c-f963b797edca" name="Default" comment="">
+<<<<<<< HEAD
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/out/production/Lab7/HunterGame$Gun$Bullet.class" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/out/production/Lab7/HunterGame$Gun.class" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/pictures/bullet.png" />
@@ -13,12 +14,17 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/Lab7/HunterGame$Controller.class" afterPath="$PROJECT_DIR$/out/production/Lab7/HunterGame$Controller.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/Lab7/HunterGame$Duck.class" afterPath="$PROJECT_DIR$/out/production/Lab7/HunterGame$Duck.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/Lab7/HunterGame.class" afterPath="$PROJECT_DIR$/out/production/Lab7/HunterGame.class" />
+=======
+>>>>>>> graphics-lab2
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../Graphics/KG_LAB2/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../../Graphics/KG_LAB2/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../Graphics/KG_LAB2/src/DrawArea.java" afterPath="$PROJECT_DIR$/../../Graphics/KG_LAB2/src/DrawArea.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Lab6/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../Lab6/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+<<<<<<< HEAD
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Form.java" afterPath="$PROJECT_DIR$/src/Form.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/HunterGame.java" afterPath="$PROJECT_DIR$/src/HunterGame.java" />
+=======
+>>>>>>> graphics-lab2
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -49,11 +55,17 @@
       <file leaf-file-name="HunterGame.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/HunterGame.java">
           <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
             <state relative-caret-position="-1231">
               <caret line="267" column="16" lean-forward="true" selection-start-line="267" selection-start-column="16" selection-end-line="267" selection-end-column="16" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
+=======
+            <state relative-caret-position="-1800">
+              <caret line="2" column="18" lean-forward="false" selection-start-line="2" selection-start-column="18" selection-end-line="2" selection-end-column="18" />
+              <folding />
+>>>>>>> graphics-lab2
             </state>
           </provider>
         </entry>
@@ -86,8 +98,13 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
+<<<<<<< HEAD
         <option value="$PROJECT_DIR$/src/HunterGame.java" />
         <option value="$PROJECT_DIR$/src/Form.java" />
+=======
+        <option value="$PROJECT_DIR$/src/Form.java" />
+        <option value="$PROJECT_DIR$/src/HunterGame.java" />
+>>>>>>> graphics-lab2
       </list>
     </option>
   </component>
@@ -613,12 +630,20 @@
       <workItem from="1491267181214" duration="9987000" />
       <workItem from="1491322913597" duration="1352000" />
       <workItem from="1491372644233" duration="5419000" />
+<<<<<<< HEAD
       <workItem from="1491378544800" duration="403000" />
+=======
+      <workItem from="1491378544800" duration="569000" />
+>>>>>>> graphics-lab2
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
+<<<<<<< HEAD
     <option name="totallyTimeSpent" value="17161000" />
+=======
+    <option name="totallyTimeSpent" value="17327000" />
+>>>>>>> graphics-lab2
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="27" width="1922" height="1054" extended-state="6" />
@@ -717,9 +742,13 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+<<<<<<< HEAD
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
+=======
+          <folding />
+>>>>>>> graphics-lab2
         </state>
       </provider>
     </entry>
@@ -737,9 +766,13 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+<<<<<<< HEAD
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
+=======
+          <folding />
+>>>>>>> graphics-lab2
         </state>
       </provider>
     </entry>
@@ -757,9 +790,13 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+<<<<<<< HEAD
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
+=======
+          <folding />
+>>>>>>> graphics-lab2
         </state>
       </provider>
     </entry>
@@ -775,11 +812,17 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/HunterGame.java">
       <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
         <state relative-caret-position="-1231">
           <caret line="267" column="16" lean-forward="true" selection-start-line="267" selection-start-column="16" selection-end-line="267" selection-end-column="16" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
+=======
+        <state relative-caret-position="-1800">
+          <caret line="2" column="18" lean-forward="false" selection-start-line="2" selection-start-column="18" selection-end-line="2" selection-end-column="18" />
+          <folding />
+>>>>>>> graphics-lab2
         </state>
       </provider>
     </entry>
