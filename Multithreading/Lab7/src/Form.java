@@ -13,11 +13,9 @@ public class Form {
         HunterGame game = new HunterGame();
         content.add(game, BorderLayout.CENTER);
 
-        frame.setSize(HunterGame.WIDTH + 5, HunterGame.HEIGHT + 70);
+        frame.setSize(HunterGame.WIDTH + 5, HunterGame.HEIGHT + 50);
         frame.setResizable(false);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setVisible(true);
-
-        //game.start();
     }
 }
