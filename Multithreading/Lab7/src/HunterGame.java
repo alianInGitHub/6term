@@ -1,10 +1,15 @@
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.Random;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -22,7 +27,7 @@ public class HunterGame extends JComponent {
             for (;;) {
                 repaint();
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(120);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -85,7 +90,7 @@ public class HunterGame extends JComponent {
 
         private void update() {
             if (isDead) {
-                coordinates.y += 2.0;
+                coordinates.y += 10.0;
                 if (coordinates.y > HEIGHT) {
                     generateAbilities();
                     try {
@@ -111,10 +116,92 @@ public class HunterGame extends JComponent {
             }
         }
 
+        public void die() {
+            isDead = true;
+        }
+
         @Override
         public void run() {
             for (;;) {
                 drawDuck();
+                update();
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private class Gun implements Runnable {
+        private Point gunPosition;
+        private LinkedList<Bullet> bullets;
+
+        private class Bullet {
+            private Point position;
+
+            public Bullet() {
+                position = new Point(gunPosition.x + GUN_SIDE / 2 - BULLET_SIDE / 2, gunPosition.y);
+            }
+
+            public void update() {
+                position.y -= BULLET_SPEED;
+            }
+
+            public void draw() {
+                lock.lock();
+                graphics2D.drawImage(bullet, bulletOp, position.x, position.y);
+                lock.unlock();
+            }
+        }
+
+        public Gun() {
+            gunPosition = new Point(WIDTH / 2 - GUN_SIDE / 2, HEIGHT - GUN_SIDE);
+            bullets = new LinkedList<>();
+        }
+
+        private void draw() {
+            for (int i = 0; i < bullets.size(); i++) {
+                bullets.get(i).draw();
+            }
+            lock.lock();
+            graphics2D.drawImage(gun, gunOp, gunPosition.x, gunPosition.y);
+            lock.unlock();
+        }
+
+        private void update() {
+            for (int i = 0; i < bullets.size(); i++) {
+                bullets.get(i).update();
+                if (bullets.get(i).position.y <= 0) {
+                    bullets.remove(i);
+                } else {
+                    Point bulletPosition = bullets.get(i).position;
+                    for (int j = 0; j < ducks.size(); j ++) {
+                        try {
+                            Duck duck = ducks.take();
+                            Point duckPosition = duck.coordinates;
+                            if ((duckPosition.x < bulletPosition.x + BULLET_SIDE / 2 && duckPosition.x + DUCK_SIDE > bulletPosition.x + BULLET_SIDE / 2 ) &&
+                                    (duckPosition.y < bulletPosition.y + BULLET_SIDE / 2 && duckPosition.y + DUCK_SIDE > bulletPosition.y + BULLET_SIDE / 2)) {
+                                duck.die();
+                            }
+                            ducks.add(duck);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            if (letsShoot) {
+                bullets.add(new Bullet());
+                letsShoot = false;
+            }
+        }
+
+        @Override
+        public void run() {
+            for (;;) {
+                draw();
                 update();
                 try {
                     Thread.sleep(100);
@@ -130,12 +217,15 @@ public class HunterGame extends JComponent {
     static final int WIDTH = 900;
     static final int HEIGHT = 600;
     private final int DUCK_SIDE = 60;
+    private final int BULLET_SIDE = 20;
+    private final int GUN_SIDE = 100;
+    private int BULLET_SPEED = 25;
 
     //.............................................PRIVATE FIELDS.....................................................//
 
     private Graphics2D graphics2D;
     private Image image;
-    private BlockingDeque<Thread> ducks;
+    private BlockingDeque<Duck> ducks;
 
     private BufferedImage background;
     private AffineTransformOp backgroundOp;
@@ -147,8 +237,14 @@ public class HunterGame extends JComponent {
     private BufferedImage duckDead;
     private AffineTransformOp duckOp;
 
+    private BufferedImage bullet;
+    private AffineTransformOp bulletOp;
+    private BufferedImage gun;
+    private AffineTransformOp gunOp;
+
     private Random random;
     private ReentrantLock lock;
+    private volatile boolean letsShoot;
 
 
     //.............................................PUBLIC METHODS.....................................................//
@@ -158,6 +254,7 @@ public class HunterGame extends JComponent {
         initialize();
         loadBackground();
         loadDuck();
+        loadGun();
     }
 
     @Override
@@ -175,6 +272,7 @@ public class HunterGame extends JComponent {
     public void start() {
         generateDucks();
         new Thread(new Controller()).start();
+        new Thread(new Gun()).start();
     }
 
     //............................................PRIVATE METHODS.....................................................//
@@ -182,6 +280,13 @@ public class HunterGame extends JComponent {
     private void initialize() {
         random = new Random();
         lock = new ReentrantLock();
+        letsShoot = false;
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                letsShoot = true;
+            }
+        });
     }
 
     private void initializeGraphics() {
@@ -252,12 +357,23 @@ public class HunterGame extends JComponent {
         duckOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
     }
 
+    private void loadGun() {
+        bullet = loadImage("pictures/bullet.png");
+        AffineTransform at = AffineTransform.getScaleInstance(BULLET_SIDE / 105.0, BULLET_SIDE/ 105.0);
+        bulletOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
+
+        gun = loadImage("pictures/gun.png");
+        at = AffineTransform.getScaleInstance(GUN_SIDE / (double) gun.getWidth(), GUN_SIDE/ (double) gun.getHeight());
+        gunOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
+    }
+
     private void generateDucks() {
         ducks = new LinkedBlockingDeque<>(10);
-        int n = random.nextInt(3) + 2;
+        int n = random.nextInt(5) + 2;
         for (int i = 0; i < n; i++) {
-            ducks.add(new Thread(new Duck()));
-            ducks.getLast().start();
+            Duck duck = new Duck();
+            ducks.add(duck);
+            new Thread(duck).start();
         }
     }
 
