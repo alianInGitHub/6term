@@ -355,7 +355,7 @@ public class DrawArea extends JComponent {
                 strips[count] = new Strip(new ArrayList<>());
         }
         strips[n - 1] = new Strip(new ArrayList<>());
-        //showStrips();
+        showStrips();
     }
 
     private ArrayList<Integer> findIntersectedEdges(int value) {
@@ -431,7 +431,10 @@ public class DrawArea extends JComponent {
                     for(int k = 0; k < strips[count].edges.length; k++) {
                         Edge edge = edges.get(strips[count].edges[k]);
                         Point baseVertex = edge.lowerVertex();
-                        if(isOnTheRightSide(edge.toVector(), new Point(currentPoint.x - baseVertex.x, currentPoint.y - baseVertex.y))) {
+                        // kostil ^_^ the point has to be on the right side, but somewhere in creating
+                        // chains (in sorting) I swapped from and to vertexes in the edges, so now edge
+                        // vector is pointing down, so the point we want to locate is on the left side!
+                        if(!isOnTheRightSide(edge.toVector(), new Point(currentPoint.x - baseVertex.x, currentPoint.y - baseVertex.y))) {
                             leftEdgeNum = strips[count].edges[k];
                         } else {
                             rightEdgeNum = strips[count].edges[k];
@@ -541,14 +544,10 @@ public class DrawArea extends JComponent {
         }
 
         for (int i = 0; i < vertexListOfEdgesIn.size(); i++) {
-            System.out.print(i + " : ");
             graphics2D.drawString(new Integer(i).toString(), sortedVertexes.get(i).x, sortedVertexes.get(i).y);
             for (int j = 0; j < vertexListOfEdgesIn.get(i).size(); j++) {
-                System.out.print(vertexListOfEdgesIn.get(i).get(j) + ", ");
             }
-            System.out.println();
         }
-        System.out.println();
         repaint();
 
         upIteration(vertexListOfEdgesIn, vertexListOfEdgesOut);
