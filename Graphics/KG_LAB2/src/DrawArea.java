@@ -626,9 +626,8 @@ public class DrawArea extends JComponent {
                 if (isBetween(edges.get(e).from.y, edges.get(e).to.y, currentPoint.y)) {
                     Point baseVertex = edges.get(e).lowerVertex();
                     if(!isOnTheRightSide(new Point(currentPoint.x - baseVertex.x, currentPoint.y - baseVertex.y), edges.get(e).toVector())) {
-                        //if (!isOnTheRightSide(currentPoint, edges.get(e).toVector())) {
                         if (i == 0) {
-                            System.out.println("On the left side out of graph");
+                            System.out.println("Out of graph");
                         } else {
                             System.out.println("Between chains " + (i - 1) + " and " + i);
                         }
@@ -637,6 +636,6 @@ public class DrawArea extends JComponent {
                 }
             }
         }
-        System.out.println("On the right side out of graph");
+        System.out.println("Out of graph");
     }
 }
