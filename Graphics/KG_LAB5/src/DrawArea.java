@@ -3,9 +3,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveTask;
 
 /**
  * Created by anastasia on 4/6/17.
@@ -41,12 +39,12 @@ public class DrawArea extends JComponent {
     }
 
     public void createConvexHull() {
-        if(points.isEmpty()) {
+        if (points.isEmpty()) {
             System.out.println("There are no points");
             return;
         }
 
-        if(points.size() < 4) {
+        if (points.size() < 4) {
             convexHull = points;
             drawConvexHull();
             return;
@@ -55,7 +53,7 @@ public class DrawArea extends JComponent {
         ArrayList<Point> firstArray = new ArrayList<>(points.size() / 2 + 1);
         ArrayList<Point> secondArray = new ArrayList<>(points.size() / 2 + 1);
 
-        for (int i = 0; i < points.size(); i+= 2) {
+        for (int i = 0; i < points.size(); i += 2) {
             firstArray.add(points.get(i));
             if (i + 1 < points.size()) {
                 secondArray.add(points.get(i + 1));
@@ -75,7 +73,7 @@ public class DrawArea extends JComponent {
 
     @Override
     protected void paintComponent(Graphics g) {
-        if(image == null) {
+        if (image == null) {
             image = createImage(getSize().width, getSize().height);
             graphics2D = (Graphics2D) image.getGraphics();
             graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -84,7 +82,7 @@ public class DrawArea extends JComponent {
         g.drawImage(image, 0, 0, null);
     }
 
-    private void  initialize() {
+    private void initialize() {
         points = new ArrayList<>();
         graphics2D.setPaint(Color.black);
     }

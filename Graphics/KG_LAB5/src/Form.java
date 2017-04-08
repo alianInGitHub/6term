@@ -19,10 +19,9 @@ public class Form {
         JButton okButton = new JButton("OK");
 
         ActionListener actionListener = e -> {
-            if(e.getSource() == newPointsButton) {
+            if (e.getSource() == newPointsButton) {
                 drawArea.clearData();
-            } else
-            if(e.getSource() == okButton) {
+            } else if (e.getSource() == okButton) {
                 drawArea.createConvexHull();
             }
         };
@@ -34,7 +33,7 @@ public class Form {
         content.add(controls, BorderLayout.NORTH);
 
         frame.setSize(800, 600);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
 }

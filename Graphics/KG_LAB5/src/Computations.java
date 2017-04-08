@@ -8,13 +8,10 @@ import java.util.Random;
 public class Computations {
     public static boolean isOnTheLeftSide(Point vectorA, Point vectorB) {
         int res = vectorA.x * vectorB.y - vectorA.y * vectorB.x;
-        if(res <= 0) {
-            return false;
-        }
-        return true;
+        return res > 0;
     }
 
-    public static ArrayList<Point> splitArrayInTwoParts(ArrayList<Point> array)  {
+    public static ArrayList<Point> splitArrayInTwoParts(ArrayList<Point> array) {
         ArrayList<Point> secondPart;
         int n = array.size();
         secondPart = new ArrayList<>(n / 2);
@@ -26,40 +23,35 @@ public class Computations {
     }
 
     public static boolean isBetween(int y, int y1, int y2) {
-        if(((y1 <= y) && (y < y2)) || ((y2 <= y) && (y < y1)))
-            return true;
-        return false;
+        return ((y1 <= y) && (y < y2)) || ((y2 <= y) && (y < y1));
     }
 
     public static ArrayList<Point> concatenate(ArrayList<Point> firstArray, ArrayList<Point> secondArray) {
-        ArrayList<Point> result = (ArrayList<Point>) firstArray.clone();
-        for (int i = 0; i < secondArray.size(); i++) {
-            result.add(secondArray.get(i));
+        for (Point aSecondArray : secondArray) {
+            firstArray.add(aSecondArray);
         }
-        return result;
+        return firstArray;
     }
 
     public static boolean polygonContains(Point p, ArrayList<Point> polygon) {
         int count = 0;
-        for(int i = 0; i < polygon.size(); i++) {
+        for (int i = 0; i < polygon.size(); i++) {
             Point from = polygon.get(i);
             Point to = polygon.get((i + 1) % polygon.size());
-            if(from.y > to.y) {
+            if (from.y > to.y) {
                 Point c = from;
                 from = to;
                 to = c;
             }
-            if(isOnTheLeftSide(new Point(p.x - from.x, p.y  - from.y), new Point(to.x - from.x, to.y - from.y))
-                    && isBetween(p.y, from.y, to.y))  {
+            if (isOnTheLeftSide(new Point(p.x - from.x, p.y - from.y), new Point(to.x - from.x, to.y - from.y))
+                    && isBetween(p.y, from.y, to.y)) {
                 count++;
             }
         }
-        if(count % 2 != 0)
-            return true;
-        return false;
+        return count % 2 != 0;
     }
 
-    public static Point computeCentroidOfTriangle (ArrayList<Point> triangle) {
+    public static Point computeCentroidOfTriangle(ArrayList<Point> triangle) {
         Point point = new Point();
         for (int i = 0; i < 3; i++) {
             point.x += triangle.get(i).x;
@@ -86,8 +78,8 @@ public class Computations {
 
     public static ArrayList<Integer> getIndexesInAnotherPointsSet(ArrayList<Point> subset, ArrayList<Point> set) {
         ArrayList<Integer> result = new ArrayList<>(subset.size());
-        for (int i = 0; i < subset.size(); i++) {
-            result.add(set.indexOf(subset.get(i)));
+        for (Point aSubset : subset) {
+            result.add(set.indexOf(aSubset));
         }
         return result;
     }
@@ -96,7 +88,7 @@ public class Computations {
         ArrayList<Point> hull = new ArrayList<>(points.size());
         Point lowest = findTheLowestPoint(points);
         hull.add(lowest);
-        for (;;) {
+        for (; ; ) {
             int j = 0;
             Point next = points.get(j);
             j++;
@@ -126,11 +118,11 @@ public class Computations {
         return hull;
     }
 
-    public static Point findNextRightToPointInSet (Point pointOutside, ArrayList<Point> points) {
+    public static Point findNextRightToPointInSet(Point pointOutside, ArrayList<Point> points) {
         Point nextRight = points.get(0);
         for (int i = 1; i < points.size(); i++) {
             Point current = points.get(i);
-            if (isOnTheLeftSide(new Point(nextRight.x - pointOutside.x,  nextRight.x - pointOutside.y),
+            if (isOnTheLeftSide(new Point(nextRight.x - pointOutside.x, nextRight.x - pointOutside.y),
                     new Point(current.x - nextRight.x, current.y - nextRight.y))) {
                 nextRight = current;
             }
@@ -138,11 +130,11 @@ public class Computations {
         return nextRight;
     }
 
-    public static Point findNextLeftToPointInSet (Point pointOutside, ArrayList<Point> points) {
+    public static Point findNextLeftToPointInSet(Point pointOutside, ArrayList<Point> points) {
         Point nextLeft = points.get(0);
         for (int i = 1; i < points.size(); i++) {
             Point current = points.get(i);
-            if (isOnTheLeftSide(new Point(nextLeft.x - pointOutside.x,  nextLeft.x - pointOutside.y),
+            if (isOnTheLeftSide(new Point(nextLeft.x - pointOutside.x, nextLeft.x - pointOutside.y),
                     new Point(current.x - pointOutside.x, current.y - pointOutside.y))) {
                 nextLeft = current;
             }
@@ -169,7 +161,7 @@ public class Computations {
     }
 
     public static ArrayList<Point> generateRandomTriangle(ArrayList<Point> points) {
-        Random random =  new Random();
+        Random random = new Random();
         ArrayList<Point> triangle = new ArrayList<>(3);
         for (int i = 0; i < 3; i++) {
             int id = random.nextInt(points.size());

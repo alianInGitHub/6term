@@ -5,13 +5,11 @@ import java.util.concurrent.RecursiveTask;
 /**
  * Created by anastasia on 4/8/17.
  */
-public class ConvexHullProcessor extends RecursiveTask<ArrayList<Point>> {
+class ConvexHullProcessor extends RecursiveTask<ArrayList<Point>> {
     private ArrayList<Point> firstArray;
     private ArrayList<Point> secondArray;
     private ArrayList<Point> convexHull;
-    private final int EPS = 6;
-
-    public ConvexHullProcessor(){}
+    private static final int EPS = 6;
 
     public ConvexHullProcessor(ArrayList<Point> firstConvexHull, ArrayList<Point> secondConvexHull) {
         this.firstArray = firstConvexHull;
@@ -27,38 +25,36 @@ public class ConvexHullProcessor extends RecursiveTask<ArrayList<Point>> {
         return compute();
     }
 
-    private ConvexHullProcessor recursiveSecondConvexHullInit (ConvexHullProcessor processor) {
+    private ConvexHullProcessor recursiveSecondConvexHullInit() {
         ArrayList<Point> halfSecondConvexHull = Computations.splitArrayInTwoParts(secondArray);
-        processor = new ConvexHullProcessor(secondArray, halfSecondConvexHull);
+        ConvexHullProcessor processor = new ConvexHullProcessor(secondArray, halfSecondConvexHull);
         processor.fork();
         return processor;
     }
 
-    private ArrayList<Point> recursiveSecondConvexHull(ConvexHullProcessor processor) {
-        processor = recursiveSecondConvexHullInit(processor);
+    private ArrayList<Point> recursiveSecondConvexHull() {
+        ConvexHullProcessor processor = recursiveSecondConvexHullInit();
         return processor.join();
     }
 
-    private ArrayList<Point> recursiveFirstAndSecondConvexHull(ConvexHullProcessor processor) {
-        processor = recursiveSecondConvexHullInit(processor);
+    private ArrayList<Point> recursiveFirstAndSecondConvexHull() {
+        ConvexHullProcessor processor = recursiveSecondConvexHullInit();
         firstArray = recursiveFirstConvexHull();
         return processor.join();
     }
 
     @Override
     protected ArrayList<Point> compute() {
-        ConvexHullProcessor processor = new ConvexHullProcessor();
-
         if (firstArray.size() <= 3) {
             if (secondArray.size() > 3) {
-                secondArray = recursiveSecondConvexHull(processor);
+                secondArray = recursiveSecondConvexHull();
             }
         } else {
             if (secondArray.size() > 3) {
-                secondArray = recursiveFirstAndSecondConvexHull(processor);
+                secondArray = recursiveFirstAndSecondConvexHull();
             } else {
                 //save values
-                ArrayList<Point> copy = (ArrayList<Point>) secondArray.clone();
+                ArrayList<Point> copy = secondArray;
                 firstArray = recursiveFirstConvexHull();
                 secondArray = copy;
             }
