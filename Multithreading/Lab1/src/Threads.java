@@ -1,82 +1,23 @@
 import javax.swing.*;
 import java.awt.event.ActionListener;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by anastasia on 3/29/17.
  */
-public class Threads extends JFrame {
+class Threads extends BaseThreads {
     private JButton startButton;
     private JButton stopButton;
     private JSpinner spinner1;
     private JSpinner spinner2;
     private JSlider slider;
     private JPanel rootPanel;
-    private ReentrantLock lock;
 
     private Thread[] threads;
 
-    /*class FirstTask implements Runnable {
-
-        private void setValue() {
-            lock.lock();
-            slider.setValue(10);
-            lock.unlock();
-        }
-
-        @Override
-        public void run() {
-            for (;;) {
-                //System.out.println("set 10");
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    System.out.println("stopepd");
-                    return;
-                }
-                setValue();
-                repaint();
-            }
-        }
-    }
-
-    class SecondTask implements Runnable {
-        private void setValue() {
-            lock.lock();
-            slider.setValue(90);
-            lock.unlock();
-        }
-
-        @Override
-        public void run() {
-            for (;;) {
-                //System.out.println("set 90");
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    System.out.println("stopped");
-                    return;
-                }
-                setValue();
-                repaint();
-            }
-        }
-    }*/
-
-    private class FirstTask extends SwingWorker<Void, Integer> {
-
-        @Override
-        protected Void doInBackground() throws Exception {
-            return null;
-        }
-
-
-    }
-
-    public Threads() {
-        super("Threads");
+    Threads() {
+        super();
         initialize();
-        setUpView();
+        setUpView(rootPanel);
         spinner1.addChangeListener(e -> {
             if (threads != null) {
                 threads[0].setPriority((Integer) spinner1.getValue());
@@ -89,16 +30,8 @@ public class Threads extends JFrame {
         });
     }
 
-    private void setUpView() {
-        setVisible(true);
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setResizable(false);
-        this.setBounds(500,200,500,350);
-        setContentPane(rootPanel);
-    }
-
     private void initialize() {
-        initializeSlider();
+        initializeSlider(slider);
         initializeSpinners();
         initializeButtons();
         addListeners();
@@ -111,17 +44,11 @@ public class Threads extends JFrame {
 
     private void initializeThreads() {
         threads = new Thread[2];
-        threads[0] = new Thread(new FirstTask());
-        threads[1] = new Thread(new SecondTask());
+        threads[0] = new Thread(new Task(10));
+        threads[1] = new Thread(new Task(90));
 
         threads[0].setPriority((Integer) spinner1.getValue());
         threads[1].setPriority((Integer) spinner2.getValue());
-    }
-
-    private void initializeSlider() {
-        slider.setMinimum(0);
-        slider.setMaximum(100);
-        slider.setValue(50);
     }
 
     private void initializeSpinners() {
@@ -133,8 +60,6 @@ public class Threads extends JFrame {
     }
 
     private void addListeners() {
-        lock = new ReentrantLock();
-
         ActionListener listener = e -> {
             if (e.getSource() == startButton) {
                 initializeThreads();
@@ -158,6 +83,6 @@ public class Threads extends JFrame {
     }
 
     public static void main(String[] args) {
-        JFrame task = new Threads();
+        new Threads();
     }
 }
