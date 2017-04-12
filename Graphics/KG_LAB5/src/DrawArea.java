@@ -7,6 +7,9 @@ import java.util.concurrent.ForkJoinPool;
 
 /**
  * Created by anastasia on 4/6/17.
+ * <p>
+ * Class for painting input and output information (vertexes
+ * and graph edges) on canvas
  */
 public class DrawArea extends JComponent {
 

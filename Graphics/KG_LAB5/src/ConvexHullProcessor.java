@@ -4,6 +4,10 @@ import java.util.concurrent.RecursiveTask;
 
 /**
  * Created by anastasia on 4/8/17.
+ * <p>
+ * Class of multithreading recursive convex hull processing
+ * of input set of points
+ * Algorithm is mainly described in createConvexHull() function
  */
 class ConvexHullProcessor extends RecursiveTask<ArrayList<Point>> {
     private ArrayList<Point> firstArray;
@@ -75,8 +79,8 @@ class ConvexHullProcessor extends RecursiveTask<ArrayList<Point>> {
             return Computations.Grehem(newConvexHull);
         }
 
-        Point nextRight = Computations.findNextRightToPointInSet(randomPointInsideHull, secondConvexHull);
-        Point nextLeft = Computations.findNextLeftToPointInSet(randomPointInsideHull, secondConvexHull);
+        Point nextRight = Computations.findNextRightPointFromSet(randomPointInsideHull, secondConvexHull);
+        Point nextLeft = Computations.findNextLeftPointFromSet(randomPointInsideHull, secondConvexHull);
 
         secondConvexHull = Computations.removeEdgesBetweenVertexes(nextLeft, nextRight, secondConvexHull);
         newConvexHull = Computations.concatenate(firstConvexHull, secondConvexHull);

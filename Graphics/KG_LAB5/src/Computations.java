@@ -4,6 +4,9 @@ import java.util.Random;
 
 /**
  * Created by anastasia on 4/8/17.
+ * <p>
+ * Class with general computation functions frequently
+ * (or not so) used in this homework projects
  */
 public class Computations {
     public static boolean isOnTheLeftSide(Point vectorA, Point vectorB) {
@@ -118,7 +121,7 @@ public class Computations {
         return hull;
     }
 
-    public static Point findNextRightToPointInSet(Point pointOutside, ArrayList<Point> points) {
+    public static Point findNextRightPointFromSet(Point pointOutside, ArrayList<Point> points) {
         Point nextRight = points.get(0);
         for (int i = 1; i < points.size(); i++) {
             Point current = points.get(i);
@@ -130,7 +133,7 @@ public class Computations {
         return nextRight;
     }
 
-    public static Point findNextLeftToPointInSet(Point pointOutside, ArrayList<Point> points) {
+    public static Point findNextLeftPointFromSet(Point pointOutside, ArrayList<Point> points) {
         Point nextLeft = points.get(0);
         for (int i = 1; i < points.size(); i++) {
             Point current = points.get(i);
@@ -155,8 +158,6 @@ public class Computations {
                 convexHull.remove(i);
             }
         }
-        convexHull.remove(v1);
-        convexHull.remove(v2);
         return convexHull;
     }
 

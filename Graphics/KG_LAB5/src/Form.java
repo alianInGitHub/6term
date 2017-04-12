@@ -4,6 +4,8 @@ import java.awt.event.ActionListener;
 
 /**
  * Created by anastasia on 4/6/17.
+ * <p>
+ * Class where all objects on the form are created and initialized
  */
 public class Form {
     public static void main(String[] args) {
