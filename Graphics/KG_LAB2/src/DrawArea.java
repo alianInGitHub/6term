@@ -22,55 +22,6 @@ public class DrawArea extends JComponent {
         STRIPS, CHAINS, NONE
     }
 
-    private class Edge {
-        Point from, to;
-        int fromId, toId;
-        int w;
-        public Edge(Point v1, Point v2) {
-            from = v1;
-            to = v2;
-        }
-
-        public Edge(Point v1, int v1Id, Point v2, int v2Id) {
-            from = v1;
-            fromId = v1Id;
-            to = v2;
-            toId = v2Id;
-        }
-
-        public Point toVector() {
-            if(to.y < from.y) {
-                return new Point(to.x - from.x, to.y - from.y);
-            }
-            return new Point(from.x - to.x, from.y - to.y);
-        }
-        public Point lowerVertex() {
-            if(to.y > from.y)
-                return to;
-            return from;
-        }
-
-        public void swapDirection() {
-            Point c = from;
-            from = to;
-            to = c;
-        }
-    }
-
-    private class Strip {
-        int[] edges;
-        public Strip(ArrayList<Integer> edgesIDs) {
-            if(edgesIDs.isEmpty()) {
-                edges = null;
-                return;
-            }
-
-            edges = new int[edgesIDs.size()];
-            for (int i = 0; i < edges.length; i++)
-                edges[i] = edgesIDs.get(i);
-        }
-    }
-
     //.............................................VARIABLES..........................................................//
 
     private DrawingMode currentMode;
@@ -85,7 +36,6 @@ public class DrawArea extends JComponent {
     private Point fromVertex = null;
     private int fromVertexId;
     private Point currentPoint = null;
-    private Strip[] strips;
     private ArrayList<LinkedList<Integer>> chains;
 
     //.............................................PUBLIC..METHODS....................................................//
@@ -310,144 +260,6 @@ public class DrawArea extends JComponent {
             locateInChains();
     }
 
-    private void showStrips() {
-        if(strips == null)
-            return;
-        for(int i = 0; i < strips.length; i++) {
-            System.out.print(i + " : ");
-            if(strips[i].edges == null)
-                continue;
-            for (int j = 0; j < strips[i].edges.length; j++) {
-                System.out.print(strips[i].edges[j] + ", ");
-            }
-            System.out.print("\n");
-        }
-        System.out.println();
-    }
-
-    private boolean isOnTheRightSide(Point vectorA, Point vectorB) {
-        int res = vectorA.x * vectorB.y - vectorA.y * vectorB.x;
-        if(res <= 0) {
-            return true;
-        } else
-            return false;
-    }
-
-    private void createStrips() {
-        int n = VERTEX_AMOUNT + 1;
-        for(int i = 0; i < VERTEX_AMOUNT - 1; i++) {
-            if(sortedVertexes.get(i).getY() == sortedVertexes.get(i + 1).getY())
-                n--;
-        }
-        strips = new Strip[n];
-        strips[0] = new Strip(new ArrayList<>());
-        int Cy = 0;
-        int i = VERTEX_AMOUNT - 1;
-
-        for(int count = 1; count < n - 1; count++, i--) {
-            while ((Cy == sortedVertexes.get(i).y) && (i >= 0))
-                i--;
-            if(i >= 0) {
-                Cy = sortedVertexes.get(i).y - 1;
-                ArrayList<Integer> edgeIDS = findIntersectedEdges(Cy);
-                strips[count] = new Strip(edgeIDS);
-            } else
-                strips[count] = new Strip(new ArrayList<>());
-        }
-        strips[n - 1] = new Strip(new ArrayList<>());
-        showStrips();
-    }
-
-    private ArrayList<Integer> findIntersectedEdges(int value) {
-        ArrayList<Integer> result = new ArrayList<>();
-        for(int i = 0; i < edges.size(); i++) {
-            if(isBetween(edges.get(i).from.y, edges.get(i).to.y, value)) {
-                result.add(i);
-            }
-        }
-        return sortFromLeftToRight(result, value);
-    }
-
-    private ArrayList<Integer> sortFromLeftToRight(ArrayList<Integer> list, int yValue) {
-        int n = list.size();
-        for (int i = 0; i < n; i++) {
-            for(int j = i + 1; j < n; j++) {
-                Edge first = edges.get(list.get(i));
-                Edge second = edges.get(list.get(j));
-                if((first.from.getY() < yValue)&& (second.from.getY() < yValue)) {
-                    if(first.from.getX() > second.from.getX()) {
-                        swap(list, i, j);
-                    } else if((first.from.getX() == second.from.getX()) && (first.to.getX() > second.to.getX())){
-                        swap(list, i, j);
-                    }
-                } else if((first.from.getY() < yValue)&& (second.to.getY() < yValue)) {
-                    if(first.from.getX() > second.to.getX()) {
-                        swap(list, i, j);
-                    }else if((first.from.getX() == second.to.getX()) && (first.to.getX() > second.from.getX())){
-                        swap(list, i, j);
-                    }
-                } else if((first.to.getY() < yValue)&& (second.from.getY() < yValue)) {
-                    if (first.to.getX() > second.from.getX()) {
-                        swap(list, i, j);
-                    } else if((first.to.getX() == second.from.getX()) && (first.from.getX() > second.to.getX())){
-                        swap(list, i, j);
-                    }
-                } else if((first.to.getY() < yValue)&& (second.to.getY() < yValue)) {
-                    if (first.to.getX() > second.to.getX()) {
-                        swap(list, i, j);
-                    } else if((first.to.getX() == second.to.getX()) && (first.from.getX() > second.from.getX())){
-                        swap(list, i, j);
-                    }
-                }
-            }
-        }
-        return list;
-    }
-
-    private void swap(ArrayList<Integer> list, int a, int b) {
-        int c = list.get(a);
-        list.set(a, list.get(b));
-        list.set(b, c);
-    }
-
-    private boolean isBetween(int y1, int y2, int value) {
-        if( ((y1 <= value) && (value <= y2)) || ((y2 <= value) && (value <= y1)))
-            return true;
-        return false;
-    }
-
-    private void locateInStrips() {
-        if(currentPoint.getY() > sortedVertexes.get(VERTEX_AMOUNT - 1).getY()) {
-            info.setText("strip 0");
-            System.out.println("strip 0");
-        } else if(currentPoint.getY() < sortedVertexes.get(0).getY()) {
-            info.setText("strip " + strips.length);
-            System.out.println("strip " + strips.length);
-        } else {
-            int count = strips.length - 2;
-            for (int i = 0; i < VERTEX_AMOUNT - 1; i++, count--) {
-                if (isBetween(sortedVertexes.get(i).y, sortedVertexes.get(i + 1).y, currentPoint.y)) {
-                    int leftEdgeNum = -1, rightEdgeNum = -1;
-                    for(int k = 0; k < strips[count].edges.length; k++) {
-                        Edge edge = edges.get(strips[count].edges[k]);
-                        Point baseVertex = edge.lowerVertex();
-                        // kostil ^_^ the point has to be on the right side, but somewhere in creating
-                        // chains (in sorting) I swapped from and to vertexes in the edges, so now edge
-                        // vector is pointing down, so the point we want to locate is on the left side!
-                        if(!isOnTheRightSide(edge.toVector(), new Point(currentPoint.x - baseVertex.x, currentPoint.y - baseVertex.y))) {
-                            leftEdgeNum = strips[count].edges[k];
-                        } else {
-                            rightEdgeNum = strips[count].edges[k];
-                            break;
-                        }
-                    }
-                    info.setText("strip " + count + ", between edges " + leftEdgeNum + " and " + rightEdgeNum);
-                    System.out.println("strip " + count + ", between edges " + leftEdgeNum + " and " + rightEdgeNum);
-                    break;
-                }
-            }
-        }
-    }
 
     private void redraw() {
         clear();
@@ -592,10 +404,10 @@ public class DrawArea extends JComponent {
         }
     }
 
-        private int sumWeights(LinkedList<Integer> w) {
+    private int sumWeights(LinkedList<Integer> w) {
         int sum = 0;
         for (int i = 0; i < w.size(); i++) {
-            sum += edges.get(w.get(i)).w;
+            sum += edges.get(w.get(i)).getWeight();
         }
         return sum;
     }
