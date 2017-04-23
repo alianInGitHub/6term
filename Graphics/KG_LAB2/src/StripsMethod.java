@@ -3,6 +3,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 /**
+ * Class which implements creating strips
+ * on graph and locating a point where
  * Created by anastasia on 4/23/17.
  */
 public class StripsMethod {
@@ -48,12 +50,15 @@ public class StripsMethod {
     }
 
     private void showStrips() {
+        System.out.println("STRIPS");
         if(strips == null)
             return;
         for(int i = 0; i < strips.length; i++) {
             System.out.print(i + " : ");
-            if(strips[i].edges == null)
+            if(strips[i].edges == null) {
+                System.out.println();
                 continue;
+            }
             for (int j = 0; j < strips[i].edges.length; j++) {
                 System.out.print(strips[i].edges[j] + ", ");
             }

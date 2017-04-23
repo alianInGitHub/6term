@@ -3,6 +3,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 /**
+ * Class implements creating chains sorted from left
+ * to right in graph and locating a point where
  * Created by anastasia on 4/23/17.
  */
 public class ChainsMethod {
@@ -26,9 +28,7 @@ public class ChainsMethod {
 
         createChainsRecursive(listOfEdgesOut, sortedVertexes.size() - 1, 0);
 
-        for (LinkedList<Integer> array : chains) {
-            System.out.println(array);
-        }
+        showChains();
     }
 
     private int createChainsRecursive(ArrayList<LinkedList<Integer>> listOfEdgesOut, int currentNode, int chainId) {
@@ -58,6 +58,16 @@ public class ChainsMethod {
         return chainId;
     }
 
+    private void showChains() {
+        System.out.println("CHAINS");
+        for (int i = 0; i < chains.size(); i++) {
+            LinkedList<Integer> array = chains.get(i);
+            System.out.print(i + ":\t");
+            System.out.println(array);
+        }
+        System.out.println();
+    }
+
     private void createNewChain(int chainId, int shift) {
         chains.add(chainId + shift, new LinkedList<>());
         for (Integer e : chains.get(chainId))
@@ -79,15 +89,7 @@ public class ChainsMethod {
 
         createInAndOutEdgesListsForEachVertex(vertexListOfEdgesIn, vertexListOfEdgesOut);
 
-        /*for (int i = 0; i < vertexListOfEdgesIn.size(); i++) {
-            graphics2D.drawString(new Integer(i).toString(), sortedVertexes.get(i).x, sortedVertexes.get(i).y);
-            for (int j = 0; j < vertexListOfEdgesIn.get(i).size(); j++) {
-            }
-        }
-        repaint();*/
-
         doIterations(vertexListOfEdgesIn, vertexListOfEdgesOut);
-
         return vertexListOfEdgesOut;
     }
 
@@ -173,10 +175,10 @@ public class ChainsMethod {
 
     private int getIdOfTheRightestEdge(LinkedList<Integer> list) {
         int theRightestEdgeFromCurrentVertex = -1;
-        for (int k = 0; k < list.size(); k++) {
+        for (Integer edgeIndex : list) {
             if ((theRightestEdgeFromCurrentVertex == -1) ||
-                    (edges.get(list.get(k)).getFrom().x < edges.get(theRightestEdgeFromCurrentVertex).getFrom().x)) {
-                theRightestEdgeFromCurrentVertex = list.get(k);
+                    (edges.get(edgeIndex).getFrom().x < edges.get(theRightestEdgeFromCurrentVertex).getFrom().x)) {
+                theRightestEdgeFromCurrentVertex = edgeIndex;
             }
         }
         return theRightestEdgeFromCurrentVertex;

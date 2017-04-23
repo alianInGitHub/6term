@@ -1,6 +1,7 @@
 import java.awt.*;
 
 /**
+ * Graph edge class
  * Created by anastasia on 4/23/17.
  */
 public class Edge {

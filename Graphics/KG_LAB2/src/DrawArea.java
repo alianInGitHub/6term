@@ -6,13 +6,12 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 /**
+ * Class for drawing on canvas
  * Created by Анастасия on 03.03.2017.
  */
 public class DrawArea extends JComponent {
 
     private final int PAINT_RADIUS = 10;
-
-    //.............................................STRUCTURES.........................................................//
 
     public enum DrawingMode {
         GRAPH_VERTEXES, GRAPH_EDGES, POINTS, NONE
@@ -22,13 +21,10 @@ public class DrawArea extends JComponent {
         STRIPS, CHAINS, NONE
     }
 
-    //.............................................VARIABLES..........................................................//
-
     private DrawingMode currentMode;
     private METHOD currentLocationMethod;
     private Image image;
     private Graphics2D graphics2D;
-    private JTextArea info;
 
     private ArrayList<Point> sortedVertexes;        // vertexes are sorted by increasing y-value coordinate
     private LinkedList<Edge> edges;
@@ -36,31 +32,67 @@ public class DrawArea extends JComponent {
     private Point fromVertex = null;
     private int fromVertexId;
     private Point currentPoint = null;
-    private ArrayList<LinkedList<Integer>> chains;
 
-    //.............................................PUBLIC..METHODS....................................................//
+    private StripsMethod strips;
+    private ChainsMethod chains;
+
 
     public DrawArea() {
         initialize();
+        addMouseListener();
+    }
 
+    private void initialize() {
+        edges = new LinkedList<>();
+        sortedVertexes = new ArrayList<>();
+        currentMode = DrawingMode.NONE;
+        currentLocationMethod = METHOD.NONE;
+        setDoubleBuffered(false);
+    }
+
+    private void addMouseListener() {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                switch (currentMode) {
-                    case GRAPH_VERTEXES:
-                        createGraphVertex(e.getX(), e.getY());
-                        break;
-                    case GRAPH_EDGES:
-                        createGraphEdge(e.getX(), e.getY());
-                        break;
-                    case POINTS:
-                        createAndLocatePointOnCanvas(e.getX(), e.getY());
-                        break;
-                    case NONE:
-                        break;
-                }
+                chooseAction(e);
             }
         });
+    }
+
+    private void chooseAction(MouseEvent e) {
+        switch (currentMode) {
+            case GRAPH_VERTEXES:
+                createGraphVertex(e.getX(), e.getY());
+                break;
+            case GRAPH_EDGES:
+                createGraphEdge(e.getX(), e.getY());
+                break;
+            case POINTS:
+                createAndLocatePointOnCanvas(e.getX(), e.getY());
+                break;
+            default: break;
+        }
+    }
+
+    private void createAndLocatePointOnCanvas(int x, int y) {
+        eraseCurrentPoint();
+        if(currentLocationMethod != METHOD.NONE) {
+            currentPoint = new Point(x, y);
+            drawPoint(x, y, PAINT_RADIUS);
+            showInfo();
+        }
+    }
+
+    private void showInfo() {
+        String info = locatePointAndGetInfo();
+        System.out.println(info);
+    }
+
+    private String locatePointAndGetInfo() {
+        if(currentLocationMethod == METHOD.STRIPS)
+            return strips.locate(currentPoint);
+        else
+            return chains.locate(currentPoint);
     }
 
     public void setCurrentLocationMethod(METHOD currentLocationMethod) {
@@ -79,26 +111,51 @@ public class DrawArea extends JComponent {
                 graphics2D.setPaint(Color.green);
                 break;
             case NONE:
-                switch (currentMode) {
-                    case GRAPH_EDGES:
-                        if(fromVertex != null) {
-                            graphics2D.setPaint(Color.black);
-                            drawPoint((int)fromVertex.getX(), (int)fromVertex.getY(), PAINT_RADIUS);
-                            fromVertex = null;
-                        }
-                        if(edges.size() != 0) {
-                            createStrips();
-                            createChains();
-                        }
-                        break;
-                    case POINTS:
-                        eraseCurrentPoint();
-                        break;
-                    default:
-                        break;
-                }
+                switchFromNoneMode();
         }
         this.currentMode = newMode;
+    }
+
+    private void switchFromNoneMode() {
+        if (currentMode == DrawingMode.GRAPH_EDGES) {
+            setColorToBlack();
+            initMethods();
+        } else if (currentMode == DrawingMode.POINTS) {
+            eraseCurrentPoint();
+        }
+    }
+
+    private void setColorToBlack() {
+        if(fromVertex != null) {
+            graphics2D.setPaint(Color.black);
+            drawPoint((int)fromVertex.getX(), (int)fromVertex.getY(), PAINT_RADIUS);
+            fromVertex = null;
+        }
+    }
+
+    private void initMethods() {
+        if(edges.size() != 0) {
+            initStrips();
+            initChains();
+        }
+    }
+
+    private void eraseCurrentPoint() {
+        if(currentPoint != null) {
+            graphics2D.setPaint(Color.white);
+            drawPoint((int)currentPoint.getX(), (int)currentPoint.getY(), PAINT_RADIUS + 1);
+            graphics2D.setPaint(Color.green);
+        }
+    }
+
+    private void initStrips() {
+        strips = new StripsMethod(sortedVertexes, edges);
+        strips.createStrips();
+    }
+
+    private void initChains() {
+        chains = new ChainsMethod(sortedVertexes, edges);
+        chains.createChains();
     }
 
     public void clearData() {
@@ -109,24 +166,6 @@ public class DrawArea extends JComponent {
         fromVertex = null;
         strips = null;
         currentMode = DrawingMode.NONE;
-    }
-
-    public void setTextArea(JTextArea info) {
-        this.info = info;
-    }
-
-
-    //.............................................PRIVATE..METHODS...................................................//
-
-
-    private void initialize() {
-        edges = new LinkedList<>();
-        sortedVertexes = new ArrayList<>();
-
-        currentMode = DrawingMode.NONE;
-        currentLocationMethod = METHOD.NONE;
-
-        setDoubleBuffered(false);
     }
 
     private void createGraphVertex(int x, int y) {
@@ -143,36 +182,22 @@ public class DrawArea extends JComponent {
         }
     }
 
-
-    private void createAndLocatePointOnCanvas(int x, int y) {
-        eraseCurrentPoint();
-        if(currentLocationMethod != METHOD.NONE) {
-            currentPoint = new Point(x, y);
-            drawPoint(x, y, PAINT_RADIUS);
-            showInfo();
-        }
-    }
-
     private void addPoint(int x, int y) {
         if(VERTEX_AMOUNT == 0) {
             sortedVertexes.add(new Point(x, y));
         } else {
-            addToSortedVertexesList(new Point(x, y), VERTEX_AMOUNT / 2, VERTEX_AMOUNT / 2);
+            addToSortedVertexesList(new Point(x, y));
         }
         VERTEX_AMOUNT++;
     }
 
-    private void addToSortedVertexesList(Point p, int position, int range) {
+    private void addToSortedVertexesList(Point p) {
+        addToSortedVertexesListRecursive(p, VERTEX_AMOUNT / 2, VERTEX_AMOUNT / 2);
+    }
+
+    private void addToSortedVertexesListRecursive(Point p, int position, int range) {
         if((position == 0) || (range == 0)) {
-            if(position == VERTEX_AMOUNT) {
-                sortedVertexes.add(p);
-                return;
-            }
-            if(sortedVertexes.get(position).getY() < p.getY()) {
-                sortedVertexes.add(position + 1, p);
-            } else {
-                sortedVertexes.add(position, p);
-            }
+            insertPointIntoList(p, position);
             return;
         }
 
@@ -181,9 +206,21 @@ public class DrawArea extends JComponent {
             range = newRange;
         }
         if(sortedVertexes.get(position).getY() < p.getY()) {
-            addToSortedVertexesList(p, position + range, newRange);
+            addToSortedVertexesListRecursive(p, position + range, newRange);
         } else {
-            addToSortedVertexesList(p, position - range, newRange);
+            addToSortedVertexesListRecursive(p, position - range, newRange);
+        }
+    }
+
+    private void insertPointIntoList(Point p, int position) {
+        if(position == VERTEX_AMOUNT) {
+            sortedVertexes.add(p);
+            return;
+        }
+        if(sortedVertexes.get(position).getY() < p.getY()) {
+            sortedVertexes.add(position + 1, p);
+        } else {
+            sortedVertexes.add(position, p);
         }
     }
 
@@ -219,15 +256,6 @@ public class DrawArea extends JComponent {
         repaint();
     }
 
-    private void eraseCurrentPoint() {
-        if(currentPoint != null) {
-            graphics2D.setPaint(Color.white);
-            drawPoint((int)currentPoint.getX(), (int)currentPoint.getY(), PAINT_RADIUS + 1);
-            graphics2D.setPaint(Color.green);
-            info.setText("");
-        }
-    }
-
     private boolean isSelected(Point vertex, int x, int y ) {
         if((vertex.getX() < x) && (vertex.getY() < y) &&
                 (vertex.getX() + PAINT_RADIUS > x) && (vertex.getY() + PAINT_RADIUS > y))
@@ -249,205 +277,6 @@ public class DrawArea extends JComponent {
     private void clear() {
         graphics2D.setPaint(Color.white);
         graphics2D.fillRect(0, 0, getWidth(), getHeight());
-        info.setText("");
         repaint();
-    }
-
-    private void showInfo() {
-        if(currentLocationMethod == METHOD.STRIPS)
-            locateInStrips();
-        else
-            locateInChains();
-    }
-
-
-    private void redraw() {
-        clear();
-
-        graphics2D.setPaint(Color.black);
-        for(int i = 0; i < edges.size(); i++) {
-            drawLine(edges.get(i).from, edges.get(i).to);
-        }
-
-        for(int i= 0; i < VERTEX_AMOUNT; i++) {
-            drawPoint(sortedVertexes.get(i).x, sortedVertexes.get(i).y, PAINT_RADIUS);
-        }
-
-        currentPoint = null;
-    }
-
-    private void createChains() {
-        ArrayList<LinkedList<Integer>> listOfEdgesOut = findEdgeWeights();
-
-        int n = sumOutWeights(listOfEdgesOut.get(listOfEdgesOut.size() - 1));
-        chains = new ArrayList<>(listOfEdgesOut.size());
-        for (int j = 0; j < listOfEdgesOut.get(listOfEdgesOut.size() - 1).size(); j++) {
-            createNewChain(0, j);
-        }
-
-        createChainsRecursive(listOfEdgesOut, sortedVertexes.size() - 1, 0);
-
-        for (LinkedList<Integer> array : chains) {
-            System.out.println(array);
-        }
-    }
-
-    private int createChainsRecursive(ArrayList<LinkedList<Integer>> listOfEdgesOut, int currentNode, int chainId) {
-        // 1. sort edges from right to left
-        // 2. for each vertex run createChainsRecursive
-        // 3. return current chainId
-
-        ArrayList<Integer> currentList = sortFromLeftToRight(new ArrayList<Integer>(listOfEdgesOut.get(currentNode)), sortedVertexes.get(currentNode).y - 1);
-        for (int i = 0; i < currentList.size(); i++) {
-            if (i > 0) {
-                chainId++;
-            }
-            chains.get(chainId).add(currentList.get(i));
-            int nextNode;
-            if (edges.get(currentList.get(i)).fromId == currentNode)
-                nextNode = edges.get(currentList.get(i)).toId;
-            else
-                nextNode = edges.get(currentList.get(i)).fromId;
-
-            if (listOfEdgesOut.get(nextNode).size() > 1) {
-                for (int j = 1; j < listOfEdgesOut.get(nextNode).size(); j++) {
-                    createNewChain(chainId, j);
-                }
-            }
-            chainId = createChainsRecursive(listOfEdgesOut, nextNode, chainId);
-        }
-        return chainId;
-    }
-
-    private void createNewChain(int chainId, int shift) {
-        chains.add(chainId + shift, new LinkedList<>());
-        for (Integer e : chains.get(chainId))
-            if (!chains.get(chainId + shift).contains(e))
-                chains.get(chainId + shift).add(e);
-    }
-
-    private int sumOutWeights(LinkedList<Integer> edgeList) {
-        int sum = 0;
-        for (Integer i:edgeList) {
-            sum += edges.get(i).w;
-        }
-        return sum;
-    }
-
-    private ArrayList<LinkedList<Integer>> findEdgeWeights() {
-        ArrayList<LinkedList<Integer>> vertexListOfEdgesIn = new ArrayList<>(sortedVertexes.size());
-        ArrayList<LinkedList<Integer>> vertexListOfEdgesOut = new ArrayList<>(sortedVertexes.size());
-
-        for (int i = 0; i < sortedVertexes.size(); i++) {
-            vertexListOfEdgesIn.add(new LinkedList<>());
-            vertexListOfEdgesOut.add(new LinkedList<>());
-        }
-        for (int i = 0; i < edges.size(); i++) {
-            Edge e = edges.get(i);
-            if(e.from.y < e.to.y) {
-                vertexListOfEdgesIn.get(e.fromId).add(i);
-                vertexListOfEdgesOut.get(e.toId).add(i);
-                edges.get(i).swapDirection();
-            } else {
-                vertexListOfEdgesIn.get(e.toId).add(i);
-                vertexListOfEdgesOut.get(e.fromId).add(i);
-            }
-            edges.get(i).w = 1;
-        }
-
-        for (int i = 0; i < vertexListOfEdgesIn.size(); i++) {
-            graphics2D.drawString(new Integer(i).toString(), sortedVertexes.get(i).x, sortedVertexes.get(i).y);
-            for (int j = 0; j < vertexListOfEdgesIn.get(i).size(); j++) {
-            }
-        }
-        repaint();
-
-        upIteration(vertexListOfEdgesIn, vertexListOfEdgesOut);
-        downIteration(vertexListOfEdgesIn, vertexListOfEdgesOut);
-
-        upIteration(vertexListOfEdgesIn, vertexListOfEdgesOut);
-        downIteration(vertexListOfEdgesIn, vertexListOfEdgesOut);
-
-        return vertexListOfEdgesOut;
-    }
-
-    private void upIteration( ArrayList<LinkedList<Integer>> vertexListOfEdgesIn,  ArrayList<LinkedList<Integer>> vertexListOfEdgesOut) {
-        //System.out.println("UP");
-        for (int i = 0; i < sortedVertexes.size(); i++) {
-            int wSumIn = sumWeights(vertexListOfEdgesIn.get(i));
-            int wSumOut = vertexListOfEdgesOut.get(i).size();
-
-            int theLeftestEdgeFromCurrentVertex = idOfTheLeftestEdge(vertexListOfEdgesOut.get(i), true);
-            if ( theLeftestEdgeFromCurrentVertex == -1)
-                continue;
-
-            if (wSumIn > wSumOut) {
-                edges.get(theLeftestEdgeFromCurrentVertex).w = wSumIn - wSumOut + 1;
-            }
-        }
-    }
-
-    private void downIteration(ArrayList<LinkedList<Integer>> vertexListOfEdgesIn, ArrayList<LinkedList<Integer>> vertexListOfEdgesOut) {
-        //System.out.println("DOWN");
-        for (int i = sortedVertexes.size() - 1; i >= 0; i--) {
-            int wSumOut = sumWeights(vertexListOfEdgesOut.get(i));
-            int wSumIn = sumWeights(vertexListOfEdgesIn.get(i));
-
-            int theLeftestEdgeFromCurrentVertex = idOfTheLeftestEdge(vertexListOfEdgesIn.get(i), false);
-
-            if ( theLeftestEdgeFromCurrentVertex == -1)
-                continue;
-
-            if (wSumOut > wSumIn) {
-                edges.get(theLeftestEdgeFromCurrentVertex).w += wSumOut - wSumIn;
-            }
-        }
-    }
-
-    private int sumWeights(LinkedList<Integer> w) {
-        int sum = 0;
-        for (int i = 0; i < w.size(); i++) {
-            sum += edges.get(w.get(i)).getWeight();
-        }
-        return sum;
-    }
-
-    private int idOfTheLeftestEdge(LinkedList<Integer> list, boolean isIn) {
-        int theLeftestEdgeFromCurrentVertex = -1;
-        if (isIn) {
-            for (int k = 0; k < list.size(); k++) {
-                if ((theLeftestEdgeFromCurrentVertex == -1) ||
-                        (edges.get(list.get(k)).to.x < edges.get(theLeftestEdgeFromCurrentVertex).to.x)) {
-                    theLeftestEdgeFromCurrentVertex = list.get(k);
-                }
-            }
-        } else {
-            for (int k = 0; k < list.size(); k++) {
-                if ((theLeftestEdgeFromCurrentVertex == -1) ||
-                        (edges.get(list.get(k)).from.x < edges.get(theLeftestEdgeFromCurrentVertex).from.x)) {
-                    theLeftestEdgeFromCurrentVertex = list.get(k);
-                }
-            }
-        }
-        return theLeftestEdgeFromCurrentVertex;
-    }
-
-    private void locateInChains() {
-        for (int i = 0; i < chains.size(); i++) {
-            for (Integer e : chains.get(i)) {
-                if (isBetween(edges.get(e).from.y, edges.get(e).to.y, currentPoint.y)) {
-                    Point baseVertex = edges.get(e).lowerVertex();
-                    if(!isOnTheRightSide(new Point(currentPoint.x - baseVertex.x, currentPoint.y - baseVertex.y), edges.get(e).toVector())) {
-                        if (i == 0) {
-                            System.out.println("Out of graph");
-                        } else {
-                            System.out.println("Between chains " + (i - 1) + " and " + i);
-                        }
-                        return;
-                    }
-                }
-            }
-        }
-        System.out.println("Out of graph");
     }
 }

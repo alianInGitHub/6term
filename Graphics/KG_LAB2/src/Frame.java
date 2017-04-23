@@ -3,6 +3,8 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 
 /**
+ * Creation and initialisation of form and elements on it
+ * Entry point of this program
  * Created by Анастасия on 03.03.2017.
  */
 public class Frame {
@@ -16,7 +18,6 @@ public class Frame {
 
         JTextArea info = new JTextArea();
         content.add( info, BorderLayout.EAST);
-        drawArea.setTextArea(info);
 
         JPanel controls = new JPanel();
         setControls(controls);

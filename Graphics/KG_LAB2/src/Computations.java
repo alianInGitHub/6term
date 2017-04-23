@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 /**
+ * Basic computations
  * Created by anastasia on 4/23/17.
  */
 public class Computations {
