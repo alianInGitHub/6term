@@ -8,6 +8,9 @@ import java.util.concurrent.RecursiveTask;
  * Class of multithreading recursive convex hull processing
  * of input set of points
  * Algorithm is mainly described in createConvexHull() function
+ * BTW, small tip!! I'm just lazy to fix names, the convex hull
+ * algorithm which is used here is not Grehem, but Jarvice, 
+ * please don't argue me, just fix name localy :)
  */
 class ConvexHullProcessor extends RecursiveTask<ArrayList<Point>> {
     private ArrayList<Point> firstArray;
