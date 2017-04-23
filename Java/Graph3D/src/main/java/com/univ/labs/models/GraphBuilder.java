@@ -13,7 +13,6 @@ import java.util.Random;
 public class GraphBuilder {
 
     public static Graph3D<Point3D, Edge> generate() {
-        //TODO: generate random 3D graph
         Random random = new Random();
         int amountOfVertices = random.nextInt(80) + random.nextInt(20) + 15;
         int amountOfEdges = random.nextInt(amountOfVertices / 2) + random.nextInt(amountOfVertices * amountOfVertices / 4);
