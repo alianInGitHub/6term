@@ -6,7 +6,17 @@ package com.univ.labs.models;
 public class Edge {
     private int fromVertexIndex;
     private int toVertexIndex;
-    private float length;
+    private double length;
+
+    public Edge() {
+
+    }
+
+    public Edge(int fromVertexIndex, int toVertexIndex, double length) {
+        this.fromVertexIndex = fromVertexIndex;
+        this.toVertexIndex = toVertexIndex;
+        this.length = length;
+    }
 
     public int getFromVertexIndex() {
         return fromVertexIndex;
@@ -24,11 +34,17 @@ public class Edge {
         this.toVertexIndex = toVertexIndex;
     }
 
-    public float getLength() {
+    public double getLength() {
         return length;
     }
 
-    public void setLength(float length) {
+    public void setLength(double length) {
         this.length = length;
+    }
+
+    public boolean contains(int vertexIndex) {
+        if ((fromVertexIndex == vertexIndex) || (toVertexIndex == vertexIndex))
+            return true;
+        return false;
     }
 }

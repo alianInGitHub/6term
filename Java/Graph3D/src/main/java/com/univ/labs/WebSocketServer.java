@@ -1,6 +1,7 @@
 package com.univ.labs;
 
-import com.univ.labs.models.Graph;
+import com.univ.labs.models.Graph3D;
+import com.univ.labs.models.GraphBuilder;
 import org.apache.log4j.Logger;
 
 import javax.websocket.*;
@@ -16,16 +17,17 @@ public class WebSocketServer {
 
     @OnOpen
     public void open(Session session) throws IOException {
-        LOG.info("connection opened");
-        Graph graph = new Graph();
-        graph.generate();
+        LOG.info("Server connection opened");
+        Graph3D graph = GraphBuilder.generate();
         graph.buildShortestPathBetween(graph.getRandomVertex(), graph.getRandomVertex());
-        session.getBasicRemote().sendText(graph.toJson());
+        String jsonText = graph.toJson();
+        //LOG.info(jsonText);
+        session.getBasicRemote().sendText(jsonText);
         session.close();
     }
 
     @OnClose
-    public void close(Session session) {
+    public void close(Session session) throws IOException {
         LOG.info("Connection closed");
     }
 

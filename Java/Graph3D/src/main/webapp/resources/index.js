@@ -1,69 +1,26 @@
 /**
  * Created by anastasia on 4/16/17.
  */
-
-var vertexShaderText =
-    [
-        'precision mediump float;',
-        'attribute vec3 vertexPosition;',
-        'uniform mat4 world;',
-        'uniform mat4 view;',
-        'uniform mat4 projection;',
-        'void main()',
-        '{',
-        'gl_Position = projection * view * world * vec4(vertexPosition, 1.0);',
-        'gl_PointSize = 10.0 * 10.0 / distance( vec4(2.0, 1.0, -4.0, 1.0) * world, vec4(vertexPosition, 1.0) );',
-        '}'
-    ].join('\n');
-
-var fragmentShaderText =
-    [
-        'precision mediump float;',
-        'uniform vec4 color;',
-        'void main()',
-        '{',
-        'gl_FragColor = color;', //vec4(0.94, 0.51, 0.06, 1.0);',
-        '}'
-    ].join('\n');
-
 var backgroundColor = [0.0, 0.1, 0.15, 1.0];
 var edgeColor = [0.02, 0.22, 0.32, 1.0];
 var vertexColor = [0.94, 0.51, 0.06, 1.0];
 var pathEdgeColor = [0.9, 0.87, 0.27, 1.0];
 
-function makeDisplayMatrices() {
-    var displayMatrices = {
-        'worldUniformLocation' : null,
-        'viewUniformLocation' : null,
-        'projectionUniformLocation' : null,
-        'init' : function (gl, program) {
-            this.worldUniformLocation = gl.getUniformLocation(program, 'world');
-            this.viewUniformLocation = gl.getUniformLocation(program, 'view');
-            this.projectionUniformLocation = gl.getUniformLocation(program, 'projection');
-        },
-        'updateWord' : function (gl, worldMatrix) {
-            gl.uniformMatrix4fv(this.worldUniformLocation, gl.FALSE, worldMatrix);
-        },
-        'updateView' : function (gl, viewMatrix) {
-            gl.uniformMatrix4fv(this.viewUniformLocation, gl.FALSE, viewMatrix);
-        },
-        'updateProjection' : function (gl, projectionMatrix) {
-            gl.uniformMatrix4fv(this.projectionUniformLocation, gl.FALSE, projectionMatrix);
-        }
-    };
-    return displayMatrices;
-}
+var graphReader;
 
 var InitConnection = function() {
     var socket = new WebSocket('ws://localhost:8080/graph');
-    socket.onOpen = function () {
+    socket.onopen = function () {
         console.log('Connected');
+        graphReader = GraphDataReader;
     };
 
-    socket.onMessage = function (evt) {
-        const graph = JSON.parse(evt.data);
+    socket.onmessage = function (evt) {
+        console.log(evt.data);
+        var jsonData = JSON.parse(evt.data);
+        console.log(jsonData.vertices[0].x);
+        graphReader.setData(JSON.parse(evt.data));
         InitWebGL();
-        socket.close();
     };
 };
 
@@ -80,6 +37,8 @@ var InitWebGL = function () {
     if (!gl) {
         alert('Your browser does not support WebGL.');
     }
+
+    graphReader.readVertices();
 
     var vertices = [
         -1, -1, -1, // 0
@@ -117,11 +76,11 @@ var InitWebGL = function () {
 
     gl.useProgram(vertexProgram);
 
-    var worldMatrix = new Float32Array(16);
+    var worldMatrix = createMat4Identity(16);
     var viewMatrix = new Float32Array(16);
     var projectionMatrix = new Float32Array(16);
     mat4.identity(worldMatrix);
-    mat4.lookAt(viewMatrix, [3 , 2, -5], [0, 0, 0], [0, 1, 0]);
+    mat4.lookAt(viewMatrix, [3 , 2, -10], [0, 0, 0], [0, 1, 0]);
     mat4.perspective(
         projectionMatrix,
         glMatrix.toRadian(45),
@@ -130,9 +89,7 @@ var InitWebGL = function () {
         1000.0
     );
 
-    var vertexBufferObject = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferObject);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    createVertexBufferObject(gl, vertices);
 
     var positionAttribLocation = gl.getAttribLocation(vertexProgram, 'vertexPosition');
     gl.vertexAttribPointer(
@@ -144,13 +101,8 @@ var InitWebGL = function () {
         0
     );
 
-    var edgesBufferObject = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, edgesBufferObject);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(edges), gl.STATIC_DRAW);
-
-    var pathEdgesBufferObject = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, pathEdgesBufferObject);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(pathEdges), gl.STATIC_DRAW);
+    var edgesBufferObject = createEdgeBufferObject(gl, edges);
+    var pathEdgesBufferObject = createEdgeBufferObject(gl, pathEdges);
 
     gl.enableVertexAttribArray(positionAttribLocation);
 
@@ -166,15 +118,11 @@ var InitWebGL = function () {
     vertexDisplayMatrices.updateProjection(gl, projectionMatrix);
 
 
-    var xRotationMatrix = new Float32Array(16);
-    var yRotationMatrix = new Float32Array(16);
-
-    mat4.identity(xRotationMatrix);
-    mat4.identity(yRotationMatrix);
+    var xRotationMatrix = createMat4Identity(16);
+    var yRotationMatrix = createMat4Identity(16);
 
     var angle = 0;
-    var identityMatrix = new Float32Array(16);
-    mat4.identity(identityMatrix);
+    var identityMatrix = createMat4Identity(16);
     var loop = function () {
         angle = performance.now() / 3000 / 6 * 2 * Math.PI;
         mat4.rotate(xRotationMatrix, identityMatrix, angle, [0, 1, 0]);
@@ -189,7 +137,7 @@ var InitWebGL = function () {
         drawEdges(gl, pathEdgeColorUniformLocation, pathEdges, pathEdgesBufferObject, pathEdgeColor);
         drawVertexes(gl, vertexColorUniformLocation);
         requestAnimationFrame(loop);
-    }
+    };
     requestAnimationFrame(loop);
 };
 
@@ -222,6 +170,48 @@ var createShader = function (gl, shaderType, shaderText) {
     return shader;
 };
 
+var createMat4Identity = function(size) {
+    var matrix = new Float32Array(size);
+    mat4.identity(matrix);
+    return matrix;
+};
+
+function makeDisplayMatrices() {
+    return {
+        'worldUniformLocation': null,
+        'viewUniformLocation': null,
+        'projectionUniformLocation': null,
+        'init': function (gl, program) {
+            this.worldUniformLocation = gl.getUniformLocation(program, 'world');
+            this.viewUniformLocation = gl.getUniformLocation(program, 'view');
+            this.projectionUniformLocation = gl.getUniformLocation(program, 'projection');
+        },
+        'updateWord': function (gl, worldMatrix) {
+            gl.uniformMatrix4fv(this.worldUniformLocation, gl.FALSE, worldMatrix);
+        },
+        'updateView': function (gl, viewMatrix) {
+            gl.uniformMatrix4fv(this.viewUniformLocation, gl.FALSE, viewMatrix);
+        },
+        'updateProjection': function (gl, projectionMatrix) {
+            gl.uniformMatrix4fv(this.projectionUniformLocation, gl.FALSE, projectionMatrix);
+        }
+    };
+}
+
+var createVertexBufferObject = function (gl, vertices) {
+    var vertexBufferObject = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferObject);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    //return vertexBufferObject;
+};
+
+var createEdgeBufferObject = function (gl, edges) {
+    var edgesBufferObject = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, edgesBufferObject);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(edges), gl.STATIC_DRAW);
+    return edgesBufferObject;
+};
+
 drawVertexes = function(gl, vertexColorUniformLocation) {
     gl.uniform4f(vertexColorUniformLocation, vertexColor[0], vertexColor[1], vertexColor[2], 1.0);
     gl.drawArrays(gl.POINTS, 0, 8);
@@ -232,6 +222,31 @@ drawEdges = function(gl, colorUniformLocation, edges, edgesBufferObject, color) 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, edgesBufferObject);
     gl.drawElements(gl.LINES, edges.length, gl.UNSIGNED_SHORT, 0);
 };
+
+var vertexShaderText =
+    [
+        'precision mediump float;',
+        'attribute vec3 vertexPosition;',
+        'uniform mat4 world;',
+        'uniform mat4 view;',
+        'uniform mat4 projection;',
+        'void main()',
+        '{',
+        'gl_Position = projection * view * world * vec4(vertexPosition, 1.0);',
+        'gl_PointSize = 9.0 * 10.0 / distance( vec4(2.0, 1.0, -4.0, 1.0) * world, vec4(vertexPosition, 1.0) );',
+        '}'
+    ].join('\n');
+
+var fragmentShaderText =
+    [
+        'precision mediump float;',
+        'uniform vec4 color;',
+        'void main()',
+        '{',
+        'gl_FragColor = color;',
+        '}'
+    ].join('\n');
+
 
 
 
