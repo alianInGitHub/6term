@@ -237,8 +237,3 @@ var fragmentShaderText =
         'gl_FragColor = color;',
         '}'
     ].join('\n');
-
-
-
-
-
