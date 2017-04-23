@@ -8,10 +8,55 @@ var GraphDataReader = {
         graphData = data;
     },
     'readVertices' : function () {
-        console.log(graphData.vertices[0].x);
-        for (var i = 0; i < graphData.vertices.size; i++) {
-            console.log(verticesObjects[i].x);
+        var vertices = [];
+        for (var i = 0;; i++) {
+            try {
+                vertices.push(graphData.vertices[i].x);
+                vertices.push(graphData.vertices[i].y);
+                vertices.push(graphData.vertices[i].z);
+            } catch (e) {
+                break;
+            }
         }
-        //for (var vertex in verticesObjects) console.log(vertex.x);
+        return vertices;
+    },
+    'readEdges' : function () {
+        var edges = [];
+        for (var i = 0; ; i++) {
+            for (var j = 0; ; j++) {
+                try {
+                    edges.push(graphData.graph[i][j].fromVertexIndex);
+                    edges.push(graphData.graph[i][j].toVertexIndex);
+                } catch (e) {
+                    if (j == 0) {
+                        console.log(edges);
+                        return edges;
+                    }
+                    break;
+                }
+            }
+        }
+        return edges;
+    },
+    'readPathEdges' : function () {
+        var edges = [];
+        for (var i = 0; ; i++) {
+            try {
+                edges.push(graphData.pathEdges[i].fromVertexIndex);
+                edges.push(graphData.pathEdges[i].toVertexIndex);
+            } catch (e) {
+                break;
+            }
+        }
+        return edges;
+    },
+    'readSourceIndex': function () {
+        return graphData.startPointIndex;
+    },
+    'readSinkIndex': function () {
+        return graphData.endPointIndex;
+    },
+    'readPathWeight': function () {
+        return graphData.pathSumWeigt;
     }
 };

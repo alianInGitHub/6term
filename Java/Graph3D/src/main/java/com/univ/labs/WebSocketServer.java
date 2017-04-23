@@ -19,9 +19,8 @@ public class WebSocketServer {
     public void open(Session session) throws IOException {
         LOG.info("Server connection opened");
         Graph3D graph = GraphBuilder.generate();
-        graph.buildShortestPathBetween(graph.getRandomVertex(), graph.getRandomVertex());
+        GraphBuilder.buildShortestPathBetweenRandomVertices(graph);
         String jsonText = graph.toJson();
-        //LOG.info(jsonText);
         session.getBasicRemote().sendText(jsonText);
         session.close();
     }

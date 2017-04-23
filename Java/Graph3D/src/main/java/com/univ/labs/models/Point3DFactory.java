@@ -10,6 +10,7 @@ import java.util.Random;
  */
 public class Point3DFactory<V, E> implements VertexFactory {
     private Random random;
+    private final int SCALE = 6;
 
     public Point3DFactory() {
         random = new Random();
@@ -17,9 +18,9 @@ public class Point3DFactory<V, E> implements VertexFactory {
 
     public Point3D createVertex() {
         return new Point3D(
-                random.nextDouble() * 10,
-                random.nextDouble() * 10,
-                random.nextDouble() * 10
+                random.nextDouble() * SCALE - SCALE / 2,
+                random.nextDouble() * SCALE - SCALE / 2,
+                random.nextDouble() * SCALE - SCALE / 2
         );
     }
 }

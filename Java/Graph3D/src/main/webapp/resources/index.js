@@ -7,6 +7,7 @@ var vertexColor = [0.94, 0.51, 0.06, 1.0];
 var pathEdgeColor = [0.9, 0.87, 0.27, 1.0];
 
 var graphReader;
+var VERTEX_AMOUNT;
 
 var InitConnection = function() {
     var socket = new WebSocket('ws://localhost:8080/graph');
@@ -16,9 +17,6 @@ var InitConnection = function() {
     };
 
     socket.onmessage = function (evt) {
-        console.log(evt.data);
-        var jsonData = JSON.parse(evt.data);
-        console.log(jsonData.vertices[0].x);
         graphReader.setData(JSON.parse(evt.data));
         InitWebGL();
     };
@@ -38,31 +36,11 @@ var InitWebGL = function () {
         alert('Your browser does not support WebGL.');
     }
 
-    graphReader.readVertices();
-
-    var vertices = [
-        -1, -1, -1, // 0
-        1, -1, -1, // 1
-        1,  1, -1, // 2
-        -1,  1, -1, // 3
-        -1, -1,  1, // 4
-        1, -1,  1, // 5
-        1,  1,  1, // 6
-        -1,  1,  1  // 7
-    ];
-    var edges = [
-        0, 1,   0, 4,   1, 2,   1, 5,
-        2, 3,   2, 6,   3, 0,   3, 7,
-        4, 5,   5, 6,   6, 7,   7, 4
-    ];
-
-    var pathEdges = [
-        1, 0,   0, 4,   4, 7
-    ];
-
-    // get list of vertices coordinates
-    // list of edges
-    // and computed path from one vertex to another
+    var vertices = graphReader.readVertices();
+    VERTEX_AMOUNT = vertices.length / 3;
+    var edges = graphReader.readEdges();
+    var pathEdges = graphReader.readPathEdges();
+    createTextNodes();
 
     var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderText);
     if (vertexShader == null)
@@ -75,19 +53,6 @@ var InitWebGL = function () {
         return;
 
     gl.useProgram(vertexProgram);
-
-    var worldMatrix = createMat4Identity(16);
-    var viewMatrix = new Float32Array(16);
-    var projectionMatrix = new Float32Array(16);
-    mat4.identity(worldMatrix);
-    mat4.lookAt(viewMatrix, [3 , 2, -10], [0, 0, 0], [0, 1, 0]);
-    mat4.perspective(
-        projectionMatrix,
-        glMatrix.toRadian(45),
-        canvas.width / canvas.height,
-        0.1,
-        1000.0
-    );
 
     createVertexBufferObject(gl, vertices);
 
@@ -106,10 +71,18 @@ var InitWebGL = function () {
 
     gl.enableVertexAttribArray(positionAttribLocation);
 
-    //colors
-    var vertexColorUniformLocation = gl.getUniformLocation(vertexProgram, 'color');
-    var edgeColorUniformLocation = gl.getUniformLocation(vertexProgram, 'color');
-    var pathEdgeColorUniformLocation = gl.getUniformLocation(vertexProgram, 'color');
+    var worldMatrix = createMat4Identity(16);
+    var viewMatrix = new Float32Array(16);
+    var projectionMatrix = new Float32Array(16);
+    mat4.identity(worldMatrix);
+    mat4.lookAt(viewMatrix, [3 , 2, -10], [0, 0, 0], [0, 1, 0]);
+    mat4.perspective(
+        projectionMatrix,
+        glMatrix.toRadian(45),
+        canvas.width / canvas.height,
+        0.1,
+        1000.0
+    );
 
     var vertexDisplayMatrices = makeDisplayMatrices();
     vertexDisplayMatrices.init(gl, vertexProgram);
@@ -117,6 +90,10 @@ var InitWebGL = function () {
     vertexDisplayMatrices.updateView(gl, viewMatrix);
     vertexDisplayMatrices.updateProjection(gl, projectionMatrix);
 
+    //colors
+    var vertexColorUniformLocation = gl.getUniformLocation(vertexProgram, 'color');
+    var edgeColorUniformLocation = gl.getUniformLocation(vertexProgram, 'color');
+    var pathEdgeColorUniformLocation = gl.getUniformLocation(vertexProgram, 'color');
 
     var xRotationMatrix = createMat4Identity(16);
     var yRotationMatrix = createMat4Identity(16);
@@ -133,8 +110,8 @@ var InitWebGL = function () {
         gl.clearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        drawEdges(gl, edgeColorUniformLocation, edges, edgesBufferObject, edgeColor);
-        drawEdges(gl, pathEdgeColorUniformLocation, pathEdges, pathEdgesBufferObject, pathEdgeColor);
+        drawEdges(gl, edgeColorUniformLocation, edges.length, edgesBufferObject, edgeColor);
+        drawEdges(gl, pathEdgeColorUniformLocation, pathEdges.length, pathEdgesBufferObject, pathEdgeColor);
         drawVertexes(gl, vertexColorUniformLocation);
         requestAnimationFrame(loop);
     };
@@ -214,13 +191,27 @@ var createEdgeBufferObject = function (gl, edges) {
 
 drawVertexes = function(gl, vertexColorUniformLocation) {
     gl.uniform4f(vertexColorUniformLocation, vertexColor[0], vertexColor[1], vertexColor[2], 1.0);
-    gl.drawArrays(gl.POINTS, 0, 8);
+    gl.drawArrays(gl.POINTS, 0, VERTEX_AMOUNT);
 };
 
-drawEdges = function(gl, colorUniformLocation, edges, edgesBufferObject, color) {
+drawEdges = function(gl, colorUniformLocation, edgesAmount, edgesBufferObject, color) {
     gl.uniform4f(colorUniformLocation, color[0], color[1], color[2], 1.0);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, edgesBufferObject);
-    gl.drawElements(gl.LINES, edges.length, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.LINES, edgesAmount, gl.UNSIGNED_SHORT, 0);
+};
+
+createTextNodes = function () {
+    var sourceElement = document.getElementById("source");
+    var sourceNode = document.createTextNode(graphReader.readSourceIndex().toFixed(0));
+    sourceElement.appendChild(sourceNode);
+
+    var sinkElement = document.getElementById("sink");
+    var sinkNode = document.createTextNode(graphReader.readSinkIndex().toFixed(0));
+    sinkElement.appendChild(sinkNode);
+
+    var weightElement = document.getElementById("weight");
+    var weightNode = document.createTextNode(graphReader.readPathWeight().toFixed(2));
+    weightElement.appendChild(weightNode);
 };
 
 var vertexShaderText =

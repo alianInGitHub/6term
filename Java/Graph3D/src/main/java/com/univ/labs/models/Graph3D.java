@@ -2,7 +2,6 @@ package com.univ.labs.models;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
 import org.jgrapht.EdgeFactory;
 import org.jgrapht.UndirectedGraph;
@@ -17,9 +16,10 @@ public class Graph3D<V, E> implements UndirectedGraph<V, E> {
 
     private ArrayList<Point3D> vertices;
     private ArrayList<ArrayList<Edge>> graph;
-    private ArrayList<Point2D> pathEdges;
+    private ArrayList<Edge> pathEdges;
     private int startPointIndex;
     private int endPointIndex;
+    private double pathSumWeigt;
     private Edge3DFactory<V, E> edge3DFactory;
 
     public Graph3D(int amountOfVertices, int amountOfEdges) {
@@ -32,68 +32,25 @@ public class Graph3D<V, E> implements UndirectedGraph<V, E> {
         }
     }
 
-    public void buildShortestPathBetween(int startPointIndex, int endPointIndex) {
-        setStartPointIndex(startPointIndex);
-        setEndPointIndex(endPointIndex);
-        buildShortestPath();
-    }
-
-    private void buildShortestPath() {
-        int amountOfVertices = vertices.size();
-        int INF = Integer.MAX_VALUE;
-        boolean[] visited = new boolean[amountOfVertices];
-        double[] distances = new double[amountOfVertices];
-        for (int i = 0; i < amountOfVertices; i++) {
-            visited[i] = false;
-            distances[i] = INF;
-        }
-
-        distances[startPointIndex] = 0;
-
-        for (int i = 0; i < amountOfVertices; i++) {
-            int currentVertexIndex = -1;
-            for (int j = 0; j < amountOfVertices; j++) {
-                if (!visited[j] && ((currentVertexIndex == -1) || (distances[j] < distances[currentVertexIndex]))) {
-                    currentVertexIndex = j;
-                }
-            }
-            if (distances[currentVertexIndex] == INF) {
-                break;
-            }
-            visited[currentVertexIndex] = true;
-            for (int j = 0; j < graph.get(i).size(); j++) {
-                int toVertexIndex = graph.get(i).get(j).getToVertexIndex();
-                double edgeWeight = graph.get(i).get(j).getLength();
-                if (distances[currentVertexIndex] + edgeWeight < distances[toVertexIndex]) {
-                    distances[toVertexIndex] = distances[currentVertexIndex] + edgeWeight;
-                }
-            }
-        }
+    public void setPathEdges(List<Edge> pathEdges) {
+        this.pathEdges = new ArrayList<Edge>(pathEdges);
     }
 
     public String toJson() {
         return GSON.toJson(this, Graph3D.class);
     }
 
-    public int getStartPointIndex() {
-        return startPointIndex;
+    public void setStartPointIndex(Point3D startPoint) {
+        this.startPointIndex = vertices.indexOf(startPoint);
     }
 
-    public void setStartPointIndex(int startPointIndex) {
-        this.startPointIndex = startPointIndex;
+    public void setEndPointIndex(Point3D endPoint) {
+        this.endPointIndex = vertices.indexOf(endPoint);
     }
 
-    public int getEndPointIndex() {
-        return endPointIndex;
-    }
-
-    public void setEndPointIndex(int endPointIndex) {
-        this.endPointIndex = endPointIndex;
-    }
-
-    public int getRandomVertex() {
+    public Point3D getRandomVertex() {
         Random random = new Random();
-        return random.nextInt(vertices.size());
+        return vertices.get(random.nextInt(vertices.size()));
     }
 
     public Set<E> getAllEdges(V v, V v1) {
@@ -233,6 +190,10 @@ public class Graph3D<V, E> implements UndirectedGraph<V, E> {
     public int degreeOf(V v) {
         int vertexIndex = vertices.indexOf((Point3D) v);
         return graph.get(vertexIndex).size();
+    }
+
+    public void setPathSumWeigt(double pathSumWeigt) {
+        this.pathSumWeigt = pathSumWeigt;
     }
 
     class Edge3DFactory<V, E> implements EdgeFactory<V, E> {
