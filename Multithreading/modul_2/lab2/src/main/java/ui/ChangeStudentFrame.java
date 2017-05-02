@@ -135,15 +135,11 @@ public class ChangeStudentFrame extends ChangeObjectFrame {
     }
 
     private void fillStudentComboBoxWithInfo(Group group) {
-        if (studentComboBox != null) {
-            studentComboBox.removeAllItems();
-        }
+        studentComboBox.removeAllItems();
         ArrayList<Student> students = (ArrayList<Student>) group.getStudents();
         for (int i = 0; i < students.size(); i++) {
             studentComboBox.addItem(students.get(i).getId());
-            System.out.print(students.get(i).getId() + "\t");
         }
-        System.out.println();
     }
 
     private void fillFieldsWithData(Student student) {
