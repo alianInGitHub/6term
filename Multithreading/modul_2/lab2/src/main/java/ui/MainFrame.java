@@ -16,7 +16,7 @@ import java.util.Objects;
  * Created by anastasia on 4/23/17.
  */
 public class MainFrame extends JFrame {
-    public static volatile boolean dataWasChanged = false;
+    static volatile boolean dataWasChanged = false;
 
     private AbstractProcessor processor;
 
@@ -54,7 +54,7 @@ public class MainFrame extends JFrame {
         setLocation(400, 300);
     }
 
-    public void createComponents() {
+    private void createComponents() {
         createMenuItems();
         createTables();
         Container contentPane = getContentPane();
@@ -169,7 +169,7 @@ public class MainFrame extends JFrame {
         deleteStudentMenuItem = new MenuItem("Delete student");
     }
 
-    public void updateTables() {
+    void updateTables() {
         groupsTable.setText("");
         studentTable.setText("");
         ArrayList<Group> groups = (ArrayList<Group>) processor.getGroups();
@@ -300,14 +300,5 @@ public class MainFrame extends JFrame {
     private void loadDataFromFile(String fileName) {
         processor.readDataFromFile(fileName);
         dataWasChanged = true;
-    }
-
-    public static void main(String[] args) {
-        Updater updater = new Updater();
-        SwingUtilities.invokeLater(() -> {
-            MainFrame frame = new MainFrame();
-            updater.setFrame(frame);
-        });
-        new Thread(updater).run();
     }
 }
