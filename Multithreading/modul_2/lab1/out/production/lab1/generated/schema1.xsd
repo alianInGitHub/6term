@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="department" type="department"/>
+
+  <xs:element name="group" type="group"/>
+
+  <xs:element name="student" type="student"/>
+
+  <xs:complexType name="department">
+    <xs:sequence>
+      <xs:element name="groups" type="group" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="group">
+    <xs:sequence>
+      <xs:element name="students" type="student" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:ID"/>
+    <xs:attribute name="faculty" type="xs:string"/>
+    <xs:attribute name="course" type="xs:int" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="student">
+    <xs:sequence/>
+    <xs:attribute name="id" type="xs:int" use="required"/>
+    <xs:attribute name="firstName" type="xs:string"/>
+    <xs:attribute name="lastName" type="xs:string"/>
+    <xs:attribute name="address" type="xs:string"/>
+    <xs:attribute name="phoneNumber" type="xs:string"/>
+  </xs:complexType>
+</xs:schema>
+

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<department>
+    <groups name="S5H" faculty="Anesthesia" course="1">
+        <students id="0" firstName="John" lastName="Reynolds" address="25 Peel Place, Clayhall Avenue, Ilford, Essex, IG5 OPS, United Kingdom" phoneNumber="1(570)654-15-77"/>
+        <students id="1" firstName="Walter" lastName="Davidson" address="6 Pike Close, Folkestone, Kent, CT19 5UT, United Kingdom" phoneNumber="983(4988)473-81-58"/>
+        <students id="2" firstName="Peregrine" lastName="Newman" address="8 Birch Road Waterford Park,Radstock BATH,Somerset, BA3 3TP,United Kingdom" phoneNumber="7(64)408-92-46"/>
+        <students id="3" firstName="Mark" lastName="Wilcox" address="39 Marchmont Road, Wallington, Surrey SM6 9NT,United Kingdom" phoneNumber="2(864)631-78-90"/>
+    </groups>
+</department>
