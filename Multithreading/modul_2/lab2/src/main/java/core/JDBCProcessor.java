@@ -5,12 +5,52 @@ import generated.Group;
 import generated.Student;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
  * Created by anastasia on 4/25/17.
  */
 public class JDBCProcessor extends AbstractProcessor{
+    private static final String URL = "jdbc:mysql://localhost:3306/department";
+    private static final String URL_FIXED = URL + "?useUnicode=true&useSSL=false&useJDBCCompliantTimezoneShift=true" +
+            "&useLegacyDatetimeCode=false&serverTimezone=UTC";
+    private static final String USER = "root";
+    private static final String PASSWORD = "admin";
+
+    private Connection connection;
+
+    public JDBCProcessor() {
+        try {
+            createDatabaseConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createDatabaseConnection() throws SQLException {
+        Driver driver = new com.mysql.cj.jdbc.Driver();
+        DriverManager.registerDriver(driver);
+        connection = DriverManager.getConnection(URL_FIXED, USER, PASSWORD);
+        if (!connection.isClosed()) {
+            System.out.println("Connection to database is established.");
+        }
+    }
+
+    public void closeDatabase() {
+        try {
+            connection.close();
+            if (connection.isClosed()) {
+                System.out.println("Connection to database was closed.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public boolean readDataFromFile(String fileName) {
         return false;
     }

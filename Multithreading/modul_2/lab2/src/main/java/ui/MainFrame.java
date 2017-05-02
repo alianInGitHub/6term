@@ -8,6 +8,9 @@ import generated.Student;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -46,9 +49,14 @@ public class MainFrame extends JFrame {
 
     private void initialize() {
         processor = new JDBCProcessor();
-        setSize(WIDTH, HEIGHT);
+        initializeWindow();
         createComponents();
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    }
+
+    private void initializeWindow() {
+        setSize(WIDTH, HEIGHT);
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        addWindowCloseListener();
         setVisible(true);
         setResizable(false);
         setLocation(400, 300);
@@ -300,5 +308,33 @@ public class MainFrame extends JFrame {
     private void loadDataFromFile(String fileName) {
         processor.readDataFromFile(fileName);
         dataWasChanged = true;
+    }
+
+    private void addWindowCloseListener() {
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                int confirm = JOptionPane.showOptionDialog(
+                        null, "Are You Sure to Close Application?",
+                        "Exit Confirmation", JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE, null, null, null);
+                if (confirm == 0) {
+                    ((JDBCProcessor) processor).closeDatabase();
+                    System.exit(0);
+                } else {
+
+                }
+            }
+        });
+    }
+
+    public static void main(String[] args) {
+        Updater updater = new Updater();
+        SwingUtilities.invokeLater(() -> {
+            MainFrame frame = new MainFrame();
+            updater.setFrame(frame);
+        });
+        Thread updaterThread = new Thread(updater);
+        updaterThread.run();
     }
 }
