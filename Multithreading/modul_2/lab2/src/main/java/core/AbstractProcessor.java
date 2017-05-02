@@ -55,7 +55,7 @@ public abstract class AbstractProcessor {
 
     public abstract void changeStudent(String groupName, int id, String attributeName, String attributeValue) throws Exception;
 
-    public abstract Student getStudent(String groupName, int id);
+    public abstract Student getStudent(int id);
 
     public abstract boolean deleteGroup(String name);
 
@@ -67,9 +67,18 @@ public abstract class AbstractProcessor {
 
     public abstract List<Student> getStudentsFromGroup(String groupName);
 
-    public abstract String groupToString(Group group);
+    public String groupToString(Group group) {
+        String info = group.getName() + "\t" + group.getFaculty() + "\t" + group.getCourse() + "\n";
+        for (int i = 0; i < group.getStudents().size(); i++) {
+            info += "\t" + studentToString(group.getStudents().get(i));
+        }
+        return info;
+    }
 
-    public abstract String studentToString(Student student);
+    public  String studentToString(Student student) {
+        return student.getId() + "\t" + student.getFirstName() + "\t" + student.getLastName() + "\t" +
+                student.getPhoneNumber() + "\t" + student.getAddress() + "\n";
+    }
 
     public abstract void saveDatabase(String fileName) throws IOException;
 

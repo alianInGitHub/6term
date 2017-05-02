@@ -53,7 +53,7 @@ public class ChangeStudentFrame extends ChangeObjectFrame {
             processor.changeStudent(groupName, studentId, "firstName", firstName);
             processor.changeStudent(groupName, studentId, "lastName", lastName);
             processor.changeStudent(groupName, studentId, "address", address);
-            processor.changeStudent(groupName, studentId, "phoneNumber", phoneNumber);
+            processor.changeStudent(groupName, studentId, "phone", phoneNumber);
             if ((newGroupName != null) && !newGroupName.equals("") && !newGroupName.equals(groupName)) {
                 processor.changeStudent(groupName, studentId, "group", newGroupName);
             }
@@ -126,18 +126,24 @@ public class ChangeStudentFrame extends ChangeObjectFrame {
             Group group = processor.getGroup((String) groupComboBox.getSelectedItem());
             fillStudentComboBoxWithInfo(group);
         } else if (e.getSource() == studentComboBox) {
-            String groupName = (String) groupComboBox.getSelectedItem();
-            int studentId = (Integer) studentComboBox.getSelectedItem();
-            Student student = processor.getStudent(groupName, studentId);
-            fillFieldsWithData(student);
+            if (studentComboBox.getItemCount() != 0) {
+                int studentId = (Integer) studentComboBox.getSelectedItem();
+                Student student = processor.getStudent(studentId);
+                fillFieldsWithData(student);
+            }
         }
     }
 
     private void fillStudentComboBoxWithInfo(Group group) {
+        if (studentComboBox != null) {
+            studentComboBox.removeAllItems();
+        }
         ArrayList<Student> students = (ArrayList<Student>) group.getStudents();
         for (int i = 0; i < students.size(); i++) {
             studentComboBox.addItem(students.get(i).getId());
+            System.out.print(students.get(i).getId() + "\t");
         }
+        System.out.println();
     }
 
     private void fillFieldsWithData(Student student) {

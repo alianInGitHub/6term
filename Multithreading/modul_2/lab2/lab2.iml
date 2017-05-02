@@ -11,5 +11,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="mysql:mysql-connector-java:6.0.6" level="project" />
+    <orderEntry type="library" name="log4j-1.2.12" level="project" />
+    <orderEntry type="library" name="Maven: mysql:mysql-connector-java:6.0.6" level="project" />
   </component>
 </module>

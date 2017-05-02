@@ -26,7 +26,9 @@ public class DeleteStudentFrame extends ShowDetailedObjectFrame {
         String groupName = (String) groupComboBox.getSelectedItem();
         Integer studentId = (Integer) studentComboBox.getSelectedItem();
         try {
-            processor.deleteStudent(groupName, studentId);
+            if (!processor.deleteStudent(groupName, studentId)) {
+                throw new Exception();
+            }
             JOptionPane.showMessageDialog(this, "Successfully deleted!");
             MainFrame.dataWasChanged = true;
             dispose();
@@ -74,9 +76,8 @@ public class DeleteStudentFrame extends ShowDetailedObjectFrame {
             Group group = processor.getGroup((String) groupComboBox.getSelectedItem());
             fillStudentComboBoxWithInfo(group);
         } else if (e.getSource() == studentComboBox) {
-            String groupName = (String) groupComboBox.getSelectedItem();
             int studentId = (Integer) studentComboBox.getSelectedItem();
-            Student student = processor.getStudent(groupName, studentId);
+            Student student = processor.getStudent(studentId);
             fillFieldsWithData(student);
         }
     }
