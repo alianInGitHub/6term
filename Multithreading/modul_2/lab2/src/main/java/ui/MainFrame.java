@@ -24,10 +24,12 @@ public class MainFrame extends JFrame {
     private AbstractProcessor processor;
 
     private MenuItem addGroupMenuItem;
-    private MenuItem addStudentMenuItem;
     private MenuItem changeGroupMenuItem;
-    private MenuItem changeStudentMenuItem;
     private MenuItem deleteGroupMenuItem;
+    private MenuItem groupInfoMenuItem;
+
+    private MenuItem addStudentMenuItem;
+    private MenuItem changeStudentMenuItem;
     private MenuItem deleteStudentMenuItem;
 
     private JTextArea groupsTable;
@@ -88,7 +90,7 @@ public class MainFrame extends JFrame {
 
     private MenuBar createMenuBar() {
         MenuBar menuBar = new MenuBar();
-        Menu menu = createMenu("Group", addGroupMenuItem, changeGroupMenuItem, deleteGroupMenuItem);
+        Menu menu = createMenu("Group", addGroupMenuItem, changeGroupMenuItem, deleteGroupMenuItem, groupInfoMenuItem);
         menuBar.add(menu);
         menu = createMenu("Student", addStudentMenuItem, changeStudentMenuItem, deleteStudentMenuItem);
         menuBar.add(menu);
@@ -170,6 +172,7 @@ public class MainFrame extends JFrame {
         changeStudentMenuItem =new MenuItem("Change student info");
         deleteGroupMenuItem = new MenuItem("Delete group");
         deleteStudentMenuItem = new MenuItem("Delete student");
+        groupInfoMenuItem = new MenuItem("Group Info");
     }
 
     void updateTables() {
@@ -204,6 +207,7 @@ public class MainFrame extends JFrame {
         changeStudentMenuItem.addActionListener(this::actionPerformed);
         deleteGroupMenuItem.addActionListener(this::actionPerformed);
         deleteStudentMenuItem.addActionListener(this::actionPerformed);
+        groupInfoMenuItem.addActionListener(this::actionPerformed);
     }
 
     private void actionPerformed(ActionEvent e) {
@@ -219,6 +223,8 @@ public class MainFrame extends JFrame {
             openDeleteGroupFrame();
         } else if (e.getSource() == deleteStudentMenuItem) {
             openDeleteStudentFrame();
+        } else if (e.getSource() == groupInfoMenuItem) {
+            openGroupInfoFrame();
         }
     }
 
@@ -246,6 +252,9 @@ public class MainFrame extends JFrame {
         SwingUtilities.invokeLater(() -> new DeleteStudentFrame(processor, this.getLocationOnScreen()));
     }
 
+    private void openGroupInfoFrame() {
+        SwingUtilities.invokeLater(() -> new GroupInfoFrame(processor, this.getLocationOnScreen()));
+    }
 
     private void addWindowCloseListener() {
         addWindowListener(new WindowAdapter() {

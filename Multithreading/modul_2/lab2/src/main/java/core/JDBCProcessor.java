@@ -299,6 +299,31 @@ public class JDBCProcessor extends AbstractProcessor{
         return studentList;
     }
 
+    public String studentToString(Student student) {
+        return getStudentGroupName(student) + "\t" + super.studentToString(student);
+    }
+
+    private String getStudentGroupName(Student student) {
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet result = statement.executeQuery(
+                    "SELECT groups.name " +
+                            "FROM groups INNER JOIN students ON groups.id = students.group_id " +
+                            "WHERE (students.id='" + student.getId() + "');"
+            );
+            if (!result.next()) {
+                statement.close();
+                return null;
+            }
+            String name = result.getString("name");
+            statement.close();
+            return name;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public void saveDatabase(String fileName) throws IOException {
 
     }
