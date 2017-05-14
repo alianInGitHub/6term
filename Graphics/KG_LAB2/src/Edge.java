@@ -32,6 +32,10 @@ public class Edge {
         Point c = from;
         from = to;
         to = c;
+
+        int cId = fromId;
+        fromId = toId;
+        toId = cId;
     }
 
     public Point getFrom() {

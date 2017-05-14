@@ -32,10 +32,10 @@ public class ChainsMethod {
     }
 
     private int createChainsRecursive(ArrayList<LinkedList<Integer>> listOfEdgesOut, int currentNode, int chainId) {
-        ArrayList<Integer> currentList = Computations.sortFromLeftToRight(
+        ArrayList<Integer> currentList = Computations.sortEdgesFromLeftToRightForVertex(
                 new ArrayList<Integer>(listOfEdgesOut.get(currentNode)),
                 edges,
-                sortedVertexes.get(currentNode).y - 1);
+                currentNode);
 
         for (int i = 0; i < currentList.size(); i++) {
             if (i > 0) {
