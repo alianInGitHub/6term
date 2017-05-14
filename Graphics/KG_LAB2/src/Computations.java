@@ -22,7 +22,7 @@ public class Computations {
                 result.add(i);
             }
         }
-        return sortFromLeftToRight(result, edges, value);
+        return sortEdgesFromLeftToRightInStrip(result, edges, value);
     }
 
     static void swap(ArrayList<Integer> list, int a, int b) {
@@ -37,39 +37,48 @@ public class Computations {
         return false;
     }
 
-    static ArrayList<Integer> sortFromLeftToRight(ArrayList<Integer> edgesIds, LinkedList<Edge> edges, int yValue) {
-        int n = edgesIds.size();
-        for (int i = 0; i < n; i++) {
-            for(int j = i + 1; j < n; j++) {
+    static ArrayList<Integer> sortEdgesFromLeftToRightInStrip(ArrayList<Integer> edgesIds, LinkedList<Edge> edges, int yValue) {
+        for (int i = 0; i < edgesIds.size(); i++) {
+            for(int j = i + 1; j < edgesIds.size(); j++) {
                 Edge first = edges.get(edgesIds.get(i));
                 Edge second = edges.get(edgesIds.get(j));
-                if((first.getFrom().getY() < yValue)&& (second.getFrom().getY() < yValue)) {
-                    if(first.getFrom().getX() > second.getFrom().getX()) {
-                        swap(edgesIds, i, j);
-                    } else if((first.getFrom().getX() == second.getFrom().getX()) && (first.getTo().getX() > second.getTo().getX())){
-                        swap(edgesIds, i, j);
-                    }
-                } else if((first.getFrom().getY() < yValue)&& (second.getTo().getY() < yValue)) {
-                    if(first.getFrom().getX() > second.getTo().getX()) {
-                        swap(edgesIds, i, j);
-                    }else if((first.getFrom().getX() == second.getTo().getX()) && (first.getTo().getX() > second.getFrom().getX())){
-                        swap(edgesIds, i, j);
-                    }
-                } else if((first.getTo().getY() < yValue)&& (second.getFrom().getY() < yValue)) {
-                    if (first.getTo().getX() > second.getFrom().getX()) {
-                        swap(edgesIds, i, j);
-                    } else if((first.getTo().getX() == second.getFrom().getX()) && (first.getFrom().getX() > second.getTo().getX())){
-                        swap(edgesIds, i, j);
-                    }
-                } else if((first.getTo().getY() < yValue)&& (second.getTo().getY() < yValue)) {
-                    if (first.getTo().getX() > second.getTo().getX()) {
-                        swap(edgesIds, i, j);
-                    } else if((first.getTo().getX() == second.getTo().getX()) && (first.getFrom().getX() > second.getFrom().getX())){
-                        swap(edgesIds, i, j);
-                    }
+                validateEdge(first);
+                validateEdge(second);
+                if(first.getFrom().getX() > second.getFrom().getX()) {
+                    swap(edgesIds, i, j);
+                } else if((first.getFromId() == second.getFromId()) &&
+                        ((first.getTo().getX() > second.getTo().getX()) || (isOnTheRightSide(first.toVector(), second.toVector())))){
+                    swap(edgesIds, i, j);
                 }
             }
         }
         return edgesIds;
+    }
+
+    static ArrayList<Integer> sortEdgesFromLeftToRightForVertex(ArrayList<Integer> edgeIds, LinkedList<Edge> edges, int fromVertexId) {
+         for (int i = 0; i < edgeIds.size(); i++) {
+             for (int j = i + 1; j < edgeIds.size(); j++) {
+                 Point firstVector = edgeToVectorWithValidation(edgeIds.get(i), edges, fromVertexId);
+                 Point secondVector = edgeToVectorWithValidation(edgeIds.get(j), edges, fromVertexId);
+                 if (!isOnTheRightSide(secondVector, firstVector)) {
+                     swap(edgeIds, i, j);
+                 }
+             }
+         }
+         return edgeIds;
+    }
+
+    static private Point edgeToVectorWithValidation(int edgeId, LinkedList<Edge> edges, int fromVertexId) {
+         Edge edge = edges.get(edgeId);
+         if (edge.getFromId() != fromVertexId) {
+             edge.swapDirection();
+         }
+         return edge.toVector();
+    }
+
+    static private void validateEdge(Edge edge) {
+        if (edge.getFrom().getY() < edge.getTo().getY()) {
+            edge.swapDirection();
+        }
     }
 }
